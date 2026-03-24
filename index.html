@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="description" content="レトロゲーム風ポモドーロ学習アプリ STUDY QUEST">
+  <title>STUDY QUEST</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================================================================
+       ログインページ
+       - IndexedDB にユーザー名がない場合のみ表示
+       - フッターなし
+       ================================================================ -->
+  <div id="page-login" class="page page-login hidden">
+    <div class="login-container">
+
+      <!-- ゲームタイトル -->
+      <div class="game-title">
+        <div class="title-main">STUDY QUEST</div>
+        <div class="title-sub">-- LEARNING POMODORO --</div>
+        <div class="title-blink">PRESS START</div>
+      </div>
+
+      <!-- ログインパネル -->
+      <div class="login-panel">
+        <div class="panel-title">[ PLAYER SELECT ]</div>
+
+        <div class="form-group">
+          <label for="username-input" class="form-label">NAME :</label>
+          <input
+            type="text"
+            id="username-input"
+            class="retro-input"
+            placeholder="YOUR NAME"
+            maxlength="20"
+            autocomplete="off"
+            spellcheck="false"
+          >
+        </div>
+
+        <button id="login-btn" class="retro-btn retro-btn--primary">
+          START
+        </button>
+        <!-- エラーメッセージは JS で動的に挿入される -->
+      </div>
+
+    </div>
+  </div><!-- /page-login -->
+
+
+  <!-- ================================================================
+       タイマーページ
+       - ポモドーロタイマー
+       - フッターあり (アクティブ: タイマー)
+       ================================================================ -->
+  <div id="page-timer" class="page page-timer hidden">
+    <div class="page-content">
+
+      <!-- ユーザーバー -->
+      <div class="user-bar">
+        <span id="timer-username" class="username-display"></span>
+        <button id="logout-btn" class="retro-btn retro-btn--small">
+          CHANGE USER
+        </button>
+      </div>
+
+      <!-- タイマー本体 -->
+      <div class="timer-container">
+
+        <!-- 現在モード表示 -->
+        <div class="panel timer-mode-panel">
+          <span id="timer-mode-label">WORK</span>
+        </div>
+
+        <!-- 残り時間 -->
+        <div class="panel timer-display-panel">
+          <div id="timer-time" class="timer-digits timer-digits--work">25:00</div>
+        </div>
+
+        <!-- ポモドーロ進捗ドット -->
+        <div class="timer-progress">
+          <div class="progress-label">SESSION</div>
+          <div class="pomodoro-dots" id="pomodoro-dots" aria-label="セッション進捗">
+            <span class="dot" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+            <span class="dot" data-index="3"></span>
+          </div>
+        </div>
+
+        <!-- 操作ボタン -->
+        <div class="timer-controls">
+          <button id="btn-start" class="retro-btn retro-btn--primary timer-btn">START</button>
+          <button id="btn-pause" class="retro-btn timer-btn hidden">PAUSE</button>
+          <button id="btn-reset" class="retro-btn timer-btn">RESET</button>
+          <button id="btn-skip"  class="retro-btn timer-btn">SKIP</button>
+        </div>
+
+        <!-- 完了・保存メッセージ -->
+        <div id="timer-message" class="timer-message hidden"></div>
+
+      </div><!-- /timer-container -->
+    </div><!-- /page-content -->
+
+    <!-- フッター (タイマーページ: タイマーをアクティブ表示) -->
+    <footer class="app-footer">
+      <nav class="footer-nav" aria-label="メインナビゲーション">
+
+        <!--
+          フッターボタン並び: flex-direction: row-reverse により
+          DOM 順 (左) タイマー → レポート → モンスター (右) が
+          表示上は 右から タイマー | レポート | モンスター になる
+        -->
+
+        <!-- タイマー (アクティブ) -->
+        <button class="footer-btn active" data-page="timer" aria-current="page">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: タイマーアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">TIMER</span>
+        </button>
+
+        <!-- レポート -->
+        <button class="footer-btn" data-page="report">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: レポートアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">REPORT</span>
+        </button>
+
+        <!-- モンスター -->
+        <button class="footer-btn" data-page="monster">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: モンスターアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">MONSTER</span>
+        </button>
+
+      </nav>
+    </footer>
+  </div><!-- /page-timer -->
+
+
+  <!-- ================================================================
+       過去1か月ページ (レポート)
+       - Supabase から直近31日の学習データを取得・棒グラフ表示
+       - フッターあり (アクティブ: レポート)
+       ================================================================ -->
+  <div id="page-report" class="page page-report hidden">
+    <div class="page-content">
+
+      <!-- ユーザーバー -->
+      <div class="user-bar">
+        <span id="report-username" class="username-display"></span>
+        <button class="retro-btn retro-btn--small logout-btn-ref">
+          CHANGE USER
+        </button>
+      </div>
+
+      <!-- ページタイトル -->
+      <div class="panel section-title">
+        <span class="section-title-text">-- BATTLE LOG: LAST 31 DAYS --</span>
+      </div>
+
+      <!-- 合計時間サマリー -->
+      <div class="panel stats-summary">
+        <span class="stats-label">TOTAL :</span>
+        <span id="report-total" class="stats-value">--H --M</span>
+      </div>
+
+      <!-- 棒グラフコンテナ (JS で描画) -->
+      <div class="panel" id="chart-container">
+        <div id="chart-loading" class="chart-loading">LOADING...</div>
+      </div>
+
+    </div><!-- /page-content -->
+
+    <!-- フッター (レポートページ: レポートをアクティブ表示) -->
+    <footer class="app-footer">
+      <nav class="footer-nav" aria-label="メインナビゲーション">
+
+        <!-- タイマー -->
+        <button class="footer-btn" data-page="timer">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: タイマーアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">TIMER</span>
+        </button>
+
+        <!-- レポート (アクティブ) -->
+        <button class="footer-btn active" data-page="report" aria-current="page">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: レポートアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">REPORT</span>
+        </button>
+
+        <!-- モンスター -->
+        <button class="footer-btn" data-page="monster">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: モンスターアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">MONSTER</span>
+        </button>
+
+      </nav>
+    </footer>
+  </div><!-- /page-report -->
+
+
+  <!-- ================================================================
+       全期間ページ (モンスター)
+       - Supabase から全期間の学習データを集計して表示
+       - モンスター専用エリア (将来の機能拡張用)
+       - フッターあり (アクティブ: モンスター)
+       ================================================================ -->
+  <div id="page-monster" class="page page-monster hidden">
+    <div class="page-content">
+
+      <!-- ユーザーバー -->
+      <div class="user-bar">
+        <span id="monster-username" class="username-display"></span>
+        <button class="retro-btn retro-btn--small logout-btn-ref">
+          CHANGE USER
+        </button>
+      </div>
+
+      <!-- ページタイトル -->
+      <div class="panel section-title">
+        <span class="section-title-text">-- ALL TIME RECORD --</span>
+      </div>
+
+      <!-- 全期間合計時間 大表示 -->
+      <div class="panel alltime-total">
+        <div class="alltime-label">TOTAL STUDY TIME</div>
+        <div id="alltime-value" class="alltime-value">--H --M</div>
+      </div>
+
+      <!-- ================================================================
+           モンスター専用エリア
+           将来ここに「勉強時間で成長するモンスター」を配置する。
+           - #monster-display-zone : モンスター画像・アニメーション配置エリア
+           - #monster-status-zone  : 成長ステータス (LV/EXP) 表示エリア
+           ================================================================ -->
+      <div class="panel monster-area" id="monster-area">
+        <div class="monster-area-title">[ COMPANION MONSTER ]</div>
+
+        <!--
+          モンスター表示ゾーン
+          後から SVG / Canvas / img / CSS アニメーション等をここに挿入する
+          id="monster-display-zone" を差し込み先として使う
+        -->
+        <div class="monster-display-zone" id="monster-display-zone">
+          <!-- 現時点はプレースホルダー表示 -->
+          <div class="monster-placeholder">
+            <div class="monster-placeholder-box">
+              <div class="monster-placeholder-label">MONSTER DISPLAY AREA</div>
+              <div class="monster-placeholder-hint">-- COMING SOON --</div>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          成長ステータス表示ゾーン
+          id="monster-status-zone" を差し込み先として使う
+          LV バーと EXP バーは JS (updateMonsterStatus) で動的に更新される
+        -->
+        <div class="monster-status-zone" id="monster-status-zone">
+          <div class="status-row">
+            <span class="status-key">LV</span>
+            <div class="status-bar-wrap">
+              <span class="status-bar-fill" id="monster-lv-bar" style="width: 0%"></span>
+            </div>
+            <span class="status-val" id="monster-lv">--</span>
+          </div>
+          <div class="status-row">
+            <span class="status-key">EXP</span>
+            <div class="status-bar-wrap">
+              <span class="status-bar-fill" id="monster-exp-bar" style="width: 0%"></span>
+            </div>
+            <span class="status-val" id="monster-exp">--</span>
+          </div>
+        </div>
+
+        <div class="monster-note">
+          * 25分の作業セッションを重ねるとモンスターが成長します (準備中)
+        </div>
+
+      </div><!-- /monster-area -->
+
+    </div><!-- /page-content -->
+
+    <!-- フッター (モンスターページ: モンスターをアクティブ表示) -->
+    <footer class="app-footer">
+      <nav class="footer-nav" aria-label="メインナビゲーション">
+
+        <!-- タイマー -->
+        <button class="footer-btn" data-page="timer">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: タイマーアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">TIMER</span>
+        </button>
+
+        <!-- レポート -->
+        <button class="footer-btn" data-page="report">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: レポートアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">REPORT</span>
+        </button>
+
+        <!-- モンスター (アクティブ) -->
+        <button class="footer-btn active" data-page="monster" aria-current="page">
+          <span class="footer-icon" aria-hidden="true">
+            <!-- SVG 差し込み用プレースホルダー: モンスターアイコン -->
+            <svg class="svg-placeholder" viewBox="0 0 24 24" width="22" height="22"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+            </svg>
+          </span>
+          <span class="footer-label">MONSTER</span>
+        </button>
+
+      </nav>
+    </footer>
+  </div><!-- /page-monster -->
+
+
+  <!-- ================================================================
+       スクリプト読み込み順序 (依存関係に注意)
+       1. supabase-config.js ... SUPABASE_URL / SUPABASE_ANON_KEY を定義
+       2. db.js             ... IndexedDB 操作 (getUsername 等)
+       3. supabase.js       ... Supabase REST API 操作 (saveStudySession 等)
+       4. app.js            ... メインロジック (上記全てを使用)
+       ================================================================ -->
+  <script src="supabase-config.js"></script>
+  <script src="db.js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
