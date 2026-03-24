@@ -1,44 +1,45 @@
 /* ============================================================
-   style.css - STUDY QUEST レトロゲーム風ポモドーロアプリ
+   style.css
+   STUDY QUEST - RPG戦闘画面風ポモドーロアプリ
+
+   デザイン方針:
+     - 黒背景 / 白い太枠 / 角張ったウィンドウ
+     - ドット絵ファミコン / PCゲーム風のUI
+     - コマンド選択ウィンドウのような見た目
+     - 余計なグラデーション・グロー・角丸は禁止
+     - 白黒ベース + 最小限の差し色 (黄 / 緑 / 橙)
    ============================================================ */
 
 /* ============================================================
-   CSS カスタムプロパティ (デザイントークン)
+   CSS 変数
    ============================================================ */
 :root {
-  /* 背景系 */
-  --bg:           #08081a;
-  --bg-panel:     #0e0e2a;
-  --bg-panel-alt: #131338;
+  /* カラー */
+  --c-bg:       #000000;   /* 背景 (黒) */
+  --c-white:    #ffffff;   /* 主テキスト / 枠線 */
+  --c-gray:     #888888;   /* サブテキスト */
+  --c-dark:     #111111;   /* ウィンドウ内サブ背景 */
+  --c-line:     #333333;   /* 区切り線 */
+  --c-cursor:   #ffff00;   /* コマンドカーソル / アクティブ */
+  --c-ok:       #55ff55;   /* 成功 / 正常 */
+  --c-warn:     #ff8800;   /* 警告 */
+  --c-bar:      #cccccc;   /* グラフ棒 */
+  --c-bar-bg:   #222222;   /* グラフ棒のトラック */
+  --c-bar-fill-white: #ffffff;
 
-  /* ボーダー */
-  --border:        #4444bb;
-  --border-bright: #7777ff;
-  --border-dim:    #2a2a66;
+  /* ウィンドウ枠線 */
+  --win-border:   4px solid var(--c-white);
+  --win-inner:    1px solid var(--c-white); /* 二重線の内側 */
+  --win-inner-gap: 3px;                    /* 外枠〜内線の隙間 */
 
-  /* テキスト */
-  --text:       #c8c8e8;
-  --text-bright:#f0f0ff;
-  --text-dim:   #666688;
-  --text-label: #9999cc;
+  /* レイアウト */
+  --footer-h: 56px;
+  --gap:      3px;   /* ウィンドウ間の隙間 */
+  --pad:      10px;  /* ウィンドウ内パディング */
 
-  /* アクセントカラー */
-  --green:   #00dd66;
-  --yellow:  #ffee00;
-  --cyan:    #00ccff;
-  --orange:  #ff8800;
-  --red:     #ff4444;
-  --purple:  #bb66ff;
-
-  /* フッター */
-  --footer-h:  60px;
-  --footer-bg: #07071a;
-
-  /* アニメーション */
-  --trans: 0.15s ease;
-
-  /* フォント */
-  --font: 'Courier New', Courier, monospace;
+  /* タイポグラフィ */
+  --font: 'MS Gothic', 'Osaka', 'ＭＳ ゴシック', 'Hiragino Kaku Gothic Pro', monospace;
+  --font-en: 'Courier New', Courier, monospace;
 }
 
 /* ============================================================
@@ -46,843 +47,196 @@
    ============================================================ */
 *, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  margin:     0;
+  padding:    0;
 }
 
-html, body {
-  height: 100%;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
+html {
+  background: var(--c-bg);
+  color:      var(--c-white);
   font-family: var(--font);
-  font-size: 14px;
-  -webkit-font-smoothing: none; /* ピクセルフォント感を出す */
+  font-size:  15px;
+  line-height: 1.5;
+
+  /* ドット感: フォントのアンチエイリアスを無効化 */
+  -webkit-font-smoothing: none;
   font-smooth: never;
+  text-rendering: optimizeSpeed;
 }
 
-/* スクロールバーのスタイル */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); }
+body {
+  background:      var(--c-bg);
+  display:         flex;
+  flex-direction:  column;
+  height:          100dvh;
+  overflow:        hidden;
+  /* PC では中央揃え */
+  max-width:       600px;
+  margin:          0 auto;
+}
+
+/* スクロールバー */
+::-webkit-scrollbar       { width: 4px; height: 4px; background: var(--c-bg); }
+::-webkit-scrollbar-thumb { background: var(--c-gray); }
 
 /* ============================================================
-   背景テクスチャ (スキャンライン風 CRT 効果)
+   RPG ウィンドウ基本クラス
+   外枠 (4px) + 内二重線 (1px) の JRPG 風ダブルボーダー
    ============================================================ */
-body::before {
+.win {
+  background: var(--c-bg);
+  border:     var(--win-border);
+  position:   relative;
+  padding:    var(--pad);
+}
+
+/* 二重線 (内側ライン) */
+.win::before {
   content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 3px,
-    rgba(0, 0, 0, 0.05) 3px,
-    rgba(0, 0, 0, 0.05) 4px
-  );
+  position: absolute;
+  inset:    var(--win-inner-gap);
+  border:   var(--win-inner);
   pointer-events: none;
-  z-index: 9999;
 }
 
-/* ============================================================
-   ページ共通
-   ============================================================ */
-.page {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.page.hidden {
-  display: none;
-}
-
-/* ログインページ以外の3ページ: コンテンツエリア + フッター */
-.page-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 12px 16px;
-  padding-bottom: 8px;
-}
-
-/* ============================================================
-   パネル (レトロ RPG のウィンドウ風)
-   ============================================================ */
-.panel {
-  background: var(--bg-panel);
-  border: 2px solid var(--border);
-  box-shadow:
-    0 0 0 1px var(--bg),        /* 外側の隙間 */
-    inset 0 0 0 1px var(--border-dim); /* 内側の二重線 */
-  padding: 12px 16px;
-  margin-bottom: 10px;
-}
-
-/* ============================================================
-   ユーザーバー (各ページ上部)
-   ============================================================ */
-.user-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0 12px;
-  border-bottom: 1px solid var(--border-dim);
-  margin-bottom: 12px;
-}
-
-.username-display {
-  font-size: 11px;
-  color: var(--text-label);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-/* ============================================================
-   ボタン共通
-   ============================================================ */
-.retro-btn {
-  background: var(--bg-panel);
-  color: var(--text-bright);
-  border: 2px solid var(--border-bright);
-  padding: 10px 20px;
-  font-family: var(--font);
-  font-size: 13px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  outline: none;
-  transition: background var(--trans), color var(--trans);
-  user-select: none;
-  /* 押し込み効果 */
-  box-shadow: 3px 3px 0 var(--border-dim);
-  position: relative;
-  top: 0;
-  left: 0;
-}
-
-.retro-btn:hover {
-  background: var(--bg-panel-alt);
-  color: var(--yellow);
-  border-color: var(--yellow);
-  box-shadow: 3px 3px 0 rgba(255, 238, 0, 0.3);
-}
-
-.retro-btn:active {
-  top: 2px;
-  left: 2px;
-  box-shadow: 1px 1px 0 var(--border-dim);
-}
-
-.retro-btn.hidden {
-  display: none;
-}
-
-/* プライマリ (ログイン開始など) */
-.retro-btn--primary {
-  border-color: var(--green);
-  color: var(--green);
-  box-shadow: 3px 3px 0 rgba(0, 221, 102, 0.25);
-}
-
-.retro-btn--primary:hover {
-  background: rgba(0, 221, 102, 0.1);
-  color: var(--green);
-  border-color: var(--green);
-  box-shadow: 3px 3px 0 rgba(0, 221, 102, 0.4);
-}
-
-/* 小さいボタン (利用者変更など) */
-.retro-btn--small {
-  padding: 5px 10px;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  box-shadow: 2px 2px 0 var(--border-dim);
-}
-
-/* ============================================================
-   ログインページ
-   ============================================================ */
-.page-login {
-  justify-content: center;
-  align-items: center;
-  background:
-    radial-gradient(ellipse at 50% 40%, #1a1a3a 0%, var(--bg) 70%);
-}
-
-.login-container {
-  width: 100%;
-  max-width: 380px;
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
-}
-
-/* ゲームタイトル */
-.game-title {
-  text-align: center;
-}
-
-.title-main {
-  font-size: clamp(28px, 8vw, 42px);
-  letter-spacing: 0.18em;
-  color: var(--yellow);
-  text-shadow:
-    0 0 10px rgba(255, 238, 0, 0.6),
-    0 0 30px rgba(255, 238, 0, 0.2),
-    3px 3px 0 rgba(0, 0, 0, 0.8);
-  text-transform: uppercase;
-}
-
-.title-sub {
-  font-size: clamp(10px, 3vw, 13px);
-  letter-spacing: 0.2em;
-  color: var(--cyan);
-  margin-top: 6px;
-  text-transform: uppercase;
-}
-
-.title-blink {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--text-dim);
-  margin-top: 16px;
-  animation: blink 1.2s step-end infinite;
-}
-
-/* ログインパネル */
-.login-panel {
-  width: 100%;
-  background: var(--bg-panel);
-  border: 2px solid var(--border);
-  box-shadow:
-    0 0 0 1px var(--bg),
-    inset 0 0 0 1px var(--border-dim),
-    0 0 30px rgba(68, 68, 187, 0.2);
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.panel-title {
-  font-size: 13px;
-  letter-spacing: 0.15em;
-  color: var(--text-label);
-  text-align: center;
-  margin-bottom: 4px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  color: var(--text-label);
-}
-
-.retro-input {
-  background: #050514;
-  color: var(--green);
-  border: 2px solid var(--border);
-  padding: 10px 12px;
-  font-family: var(--font);
-  font-size: 14px;
-  letter-spacing: 0.1em;
-  outline: none;
-  width: 100%;
-  caret-color: var(--green);
-  transition: border-color var(--trans);
-}
-
-.retro-input::placeholder {
-  color: var(--border-dim);
-  opacity: 1;
-}
-
-.retro-input:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 8px rgba(0, 221, 102, 0.2);
-}
-
-.login-error {
-  font-size: 11px;
-  color: var(--red);
-  letter-spacing: 0.08em;
-  text-align: center;
-  margin-top: -8px;
-}
-
-/* ============================================================
-   タイマーページ
-   ============================================================ */
-.timer-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-/* モードラベル */
-.timer-mode-panel {
-  width: 100%;
-  max-width: 340px;
-  text-align: center;
-  padding: 8px 16px;
-}
-
-#timer-mode-label {
-  font-size: 13px;
-  letter-spacing: 0.2em;
-  color: var(--text-label);
-}
-
-/* 残り時間 (大きなデジタル表示) */
-.timer-display-panel {
-  width: 100%;
-  max-width: 340px;
-  text-align: center;
-  padding: 20px 16px;
-  background: #050514;
-  border-color: var(--border-bright);
-}
-
-.timer-digits {
-  font-size: clamp(52px, 16vw, 80px);
-  letter-spacing: 0.06em;
-  font-weight: bold;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  transition: color var(--trans), text-shadow var(--trans);
-}
-
-/* モード別カラー */
-.timer-digits--work {
-  color: var(--yellow);
-  text-shadow:
-    0 0 12px rgba(255, 238, 0, 0.7),
-    0 0 30px rgba(255, 238, 0, 0.25);
-}
-
-.timer-digits--short-break {
-  color: var(--cyan);
-  text-shadow:
-    0 0 12px rgba(0, 204, 255, 0.6),
-    0 0 30px rgba(0, 204, 255, 0.2);
-}
-
-.timer-digits--long-break {
-  color: var(--purple);
-  text-shadow:
-    0 0 12px rgba(187, 102, 255, 0.6),
-    0 0 30px rgba(187, 102, 255, 0.2);
-}
-
-/* ポモドーロ進捗ドット */
-.timer-progress {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.progress-label {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--text-dim);
-}
-
-.pomodoro-dots {
-  display: flex;
-  gap: 10px;
-}
-
-.dot {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--border);
-  background: transparent;
-  display: inline-block;
-  transition: background var(--trans), border-color var(--trans);
-}
-
-.dot--filled {
-  background: var(--yellow);
-  border-color: var(--yellow);
-  box-shadow: 0 0 6px rgba(255, 238, 0, 0.5);
-}
-
-/* タイマー操作ボタン群 */
-.timer-controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.timer-btn {
-  min-width: 90px;
-}
-
-/* タイマーメッセージ */
-.timer-message {
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  padding: 8px 16px;
-  border: 1px solid var(--border-dim);
-  background: var(--bg-panel);
-  text-align: center;
-  max-width: 340px;
-  width: 100%;
-}
-
-.timer-message.hidden {
-  display: none;
-}
-
-.timer-message--success { color: var(--green);  border-color: var(--green); }
-.timer-message--warning { color: var(--orange); border-color: var(--orange); }
-.timer-message--info    { color: var(--cyan);   border-color: var(--cyan); }
-
-/* ============================================================
-   セクションタイトル (レポート・モンスターページ)
-   ============================================================ */
-.section-title {
-  padding: 8px 16px;
-  margin-bottom: 12px;
-}
-
-.section-title-text {
-  font-size: 12px;
-  letter-spacing: 0.15em;
-  color: var(--text-label);
-}
-
-/* ============================================================
-   レポートページ (棒グラフ)
-   ============================================================ */
-
-/* 合計表示 */
-.stats-summary {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 10px 16px;
-}
-
-.stats-label {
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  color: var(--text-label);
-}
-
-.stats-value {
-  font-size: 22px;
-  color: var(--green);
-  letter-spacing: 0.08em;
-  text-shadow: 0 0 8px rgba(0, 221, 102, 0.4);
-}
-
-/* グラフコンテナ */
-#chart-container {
-  padding: 12px 8px 8px;
-  overflow: hidden;
-}
-
-.chart-loading {
-  text-align: center;
-  font-size: 12px;
-  letter-spacing: 0.15em;
-  color: var(--text-dim);
-  padding: 20px;
-}
-
-.chart-loading.hidden {
-  display: none;
-}
-
-/* 棒グラフ全体 */
-.bar-chart {
-  display: flex;
-  align-items: stretch;
-  gap: 4px;
-  width: 100%;
-}
-
-/* Y 軸 */
-.chart-y-axis {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-right: 6px;
-  padding-bottom: 22px; /* 日付ラベル分のオフセット */
-  min-width: 28px;
-  flex-shrink: 0;
-}
-
-.y-label {
-  font-size: 10px;
-  color: var(--text-dim);
+/* ウィンドウタイトル (枠の上に重ねるラベル) */
+.win-label {
+  position:   absolute;
+  top:        0;
+  left:       10px;
+  transform:  translateY(-50%);
+  background: var(--c-bg);
+  padding:    0 4px;
+  font-size:  11px;
+  color:      var(--c-gray);
   letter-spacing: 0.05em;
-  line-height: 1;
+  white-space: nowrap;
 }
 
-/* グラフ内側 (グリッド + バー) */
-.chart-inner {
-  flex: 1;
-  position: relative;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
+/* ============================================================
+   ページ共通レイアウト
+   ============================================================ */
 
-/* グリッドライン */
-.grid-layer {
-  position: absolute;
-  inset: 0;
-  bottom: 22px; /* 日付ラベル分 */
-  pointer-events: none;
-}
-
-.grid-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--border-dim);
-  opacity: 0.5;
-}
-
-/* バーエリア */
-.bars-area {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  min-height: 180px;
-  padding-bottom: 22px; /* 日付ラベル分 */
-  position: relative;
-  min-width: max-content; /* 横スクロール対応 */
-}
-
-/* 1本のバー列 */
-.bar-col {
-  display: flex;
+/* ページ本体ラッパー (フッターを除く部分) */
+.page-wrap {
+  flex:           1;
+  display:        flex;
   flex-direction: column;
-  align-items: center;
-  width: 22px;
+  gap:            var(--gap);
+  padding:        var(--gap);
+  overflow:       hidden;
+}
+
+/* フッターコンテナ (footer.html が挿入される) */
+#footer-container {
   flex-shrink: 0;
 }
 
-/* バーのラッパー (高さ固定, バーが下から伸びる) */
-.bar-wrap {
-  height: 158px; /* bars-area min-height - padding */
-  width: 100%;
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-}
-
-/* バー本体 */
-.bar {
-  width: 100%;
-  background: var(--green);
-  min-height: 2px;
-  transition: height 0.4s ease;
-  box-shadow: 0 0 4px rgba(0, 221, 102, 0.3);
-}
-
-.bar--empty {
-  background: var(--border-dim);
-  opacity: 0.4;
-  box-shadow: none;
-}
-
-/* バーの上に表示する値ラベル */
-.bar-val {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 8px;
-  color: var(--green);
-  white-space: nowrap;
-  letter-spacing: 0;
-  margin-bottom: 2px;
-  pointer-events: none;
-}
-
-/* 日付ラベル */
-.bar-date {
-  font-size: 9px;
-  color: var(--text-dim);
-  margin-top: 4px;
-  white-space: nowrap;
-  text-align: center;
-  letter-spacing: 0;
-}
-
 /* ============================================================
-   全期間ページ (モンスター)
+   共通ウィジェット: ステータスバー (各ページ上部)
    ============================================================ */
-
-/* 合計時間 大表示 */
-.alltime-total {
-  text-align: center;
-  padding: 16px;
-  margin-bottom: 12px;
-}
-
-.alltime-label {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--text-label);
-  margin-bottom: 8px;
-}
-
-.alltime-value {
-  font-size: clamp(36px, 12vw, 56px);
-  color: var(--yellow);
-  letter-spacing: 0.08em;
-  text-shadow:
-    0 0 12px rgba(255, 238, 0, 0.5),
-    0 0 30px rgba(255, 238, 0, 0.15);
-}
-
-/* モンスター専用エリア */
-.monster-area {
-  padding: 16px;
-}
-
-.monster-area-title {
-  font-size: 12px;
-  letter-spacing: 0.15em;
-  color: var(--text-label);
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-/* モンスター表示ゾーン (将来: 画像・アニメ配置エリア) */
-.monster-display-zone {
-  /* id="monster-display-zone" に後から SVG/Canvas 等を挿入する */
-  min-height: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed var(--border-dim);
-  margin-bottom: 16px;
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.monster-placeholder {
-  text-align: center;
-}
-
-.monster-placeholder-box {
-  border: 1px solid var(--border-dim);
-  padding: 20px 30px;
-  background: var(--bg-panel-alt);
-}
-
-.monster-placeholder-label {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--border);
-}
-
-.monster-placeholder-hint {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--text-dim);
-  margin-top: 6px;
-}
-
-/* ステータスゾーン (将来: 成長ステータス) */
-.monster-status-zone {
-  /* id="monster-status-zone" */
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-key {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  color: var(--text-label);
-  min-width: 28px;
-}
-
-.status-bar-wrap {
-  flex: 1;
-  height: 10px;
-  background: var(--bg);
-  border: 1px solid var(--border-dim);
-  overflow: hidden;
-}
-
-.status-bar-fill {
-  display: block;
-  height: 100%;
-  background: var(--cyan);
-  transition: width 0.6s ease;
-  box-shadow: 0 0 4px rgba(0, 204, 255, 0.4);
-}
-
-.status-val {
-  font-size: 11px;
-  color: var(--cyan);
-  letter-spacing: 0.08em;
-  min-width: 40px;
-  text-align: right;
-}
-
-.monster-note {
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-  border-top: 1px solid var(--border-dim);
-  padding-top: 10px;
-  margin-top: 4px;
-}
-
-/* ============================================================
-   フッター
-   ============================================================ */
-.app-footer {
+.status-bar {
   flex-shrink: 0;
-  height: var(--footer-h);
-  background: var(--footer-bg);
-  border-top: 2px solid var(--border);
-  box-shadow: 0 -1px 0 var(--border-dim);
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  flex-wrap:   wrap;
+  min-height:  44px;
+  padding:     6px 12px;
 }
 
-.footer-nav {
-  display: flex;
-  flex-direction: row-reverse; /* 右から: タイマー, レポート, モンスター */
-  height: 100%;
-}
-
-.footer-btn {
-  flex: 1;
-  display: flex;
+.status-item {
+  display:        flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: transparent;
-  border: none;
-  border-left: 1px solid var(--border-dim);
-  color: var(--text-dim);
-  font-family: var(--font);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  padding: 6px 4px;
-  transition: color var(--trans), background var(--trans);
-  outline: none;
+  line-height:    1.2;
 }
 
-.footer-btn:first-child {
-  border-left: none;
+.status-label {
+  font-size: 11px;
+  color:     var(--c-gray);
+  letter-spacing: 0.05em;
 }
 
-.footer-btn:hover {
-  color: var(--text);
-  background: rgba(68, 68, 187, 0.1);
+.status-value {
+  font-size: 14px;
+  color:     var(--c-white);
+  letter-spacing: 0.05em;
 }
 
-.footer-btn.active {
-  color: var(--yellow);
-  background: rgba(255, 238, 0, 0.06);
-  border-bottom: 2px solid var(--yellow);
+/* 利用者変更ボタン (ステータスバー右端) */
+.change-user-btn {
+  margin-left:    auto;
+  background:     var(--c-bg);
+  color:          var(--c-gray);
+  border:         2px solid var(--c-gray);
+  padding:        3px 8px;
+  font-family:    var(--font);
+  font-size:      11px;
+  letter-spacing: 0.05em;
+  cursor:         pointer;
+  white-space:    nowrap;
 }
-
-.footer-btn.active .footer-icon svg {
-  stroke: var(--yellow);
-}
-
-.footer-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-}
-
-/* SVG プレースホルダー */
-.footer-icon svg {
-  stroke: var(--text-dim);
-  transition: stroke var(--trans);
-}
-
-.footer-btn:hover .footer-icon svg {
-  stroke: var(--text);
-}
-
-.footer-label {
-  font-size: 9px;
-  letter-spacing: 0.08em;
+.change-user-btn:hover {
+  color:        var(--c-cursor);
+  border-color: var(--c-cursor);
 }
 
 /* ============================================================
-   アニメーション
+   コマンドボタン (RPGのコマンド選択メニュー風)
    ============================================================ */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+.cmd-list {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+  margin-top:     6px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+.cmd-item {
+  display:        block;
+  width:          100%;
+  background:     none;
+  border:         none;
+  color:          var(--c-white);
+  font-family:    var(--font);
+  font-size:      15px;
+  text-align:     left;
+  padding:        4px 4px 4px 22px;
+  cursor:         pointer;
+  position:       relative;
+  letter-spacing: 0.05em;
+  outline:        none;
 }
 
-/* ページ表示時のフェードイン */
-.page:not(.hidden) {
-  animation: fadeIn 0.2s ease;
+/* ">" カーソル (ホバー / フォーカス時に表示) */
+.cmd-item::before {
+  content:    '';
+  position:   absolute;
+  left:       6px;
+  top:        50%;
+  transform:  translateY(-50%);
 }
 
-/* ============================================================
-   レスポンシブ (PC 向け: センタリング & 最大幅)
-   ============================================================ */
-@media (min-width: 540px) {
-  .page {
-    align-items: center;
-  }
+.cmd-item:hover,
+.cmd-item:focus {
+  color: var(--c-cursor);
+}
 
-  .page-content {
-    width: 100%;
-    max-width: 480px;
-  }
+.cmd-item:hover::before,
+.cmd-item:focus::before {
+  content: '>';
+  color:   var(--c-cursor);
+}
 
-  .app-footer {
-    /* フッターはフル幅 */
-  }
+.cmd-item:disabled {
+  color:  var(--c-line);
+  cursor: default;
+}
+.cmd-item:disabled::before {
+  content: '';
+}
 
-  .footer-nav {
-    max-width: 480px;
-    margin: 0 auto;
-  }
-
-  .login-container {
-    max-width: 420px;
-  }
+.cmd-item.hidden {
+  display: none;
 }
 
 /* ============================================================
@@ -890,4 +244,617 @@ body::before {
    ============================================================ */
 .hidden {
   display: none !important;
+}
+
+.text-gray    { color: var(--c-gray); }
+.text-cursor  { color: var(--c-cursor); }
+.text-ok      { color: var(--c-ok); }
+.text-warn    { color: var(--c-warn); }
+
+/* ============================================================
+   ログインページ (login.html)
+   ============================================================ */
+.login-page {
+  flex: 1;
+  display:         flex;
+  flex-direction:  column;
+  justify-content: center;
+  align-items:     center;
+  padding:         16px;
+  gap:             20px;
+}
+
+/* タイトルロゴ */
+.login-title {
+  text-align:     center;
+  letter-spacing: 0.12em;
+}
+
+.login-title__main {
+  font-size:   clamp(28px, 8vw, 42px);
+  color:       var(--c-white);
+  font-family: var(--font-en);
+  display:     block;
+  line-height: 1.1;
+}
+
+.login-title__sub {
+  font-size:   clamp(11px, 3vw, 14px);
+  color:       var(--c-gray);
+  display:     block;
+  margin-top:  4px;
+  letter-spacing: 0.15em;
+}
+
+/* ログインパネル */
+.login-panel {
+  width:     100%;
+  max-width: 340px;
+  padding:   20px 16px;
+}
+
+.login-panel-title {
+  font-size:   12px;
+  color:       var(--c-gray);
+  letter-spacing: 0.1em;
+  margin-bottom: 14px;
+  text-align:  center;
+}
+
+.login-form {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+}
+
+.login-label {
+  font-size: 12px;
+  color:     var(--c-gray);
+}
+
+.login-input {
+  width:          100%;
+  background:     #000;
+  color:          var(--c-white);
+  border:         2px solid var(--c-white);
+  padding:        8px 10px;
+  font-family:    var(--font);
+  font-size:      15px;
+  letter-spacing: 0.05em;
+  outline:        none;
+  caret-color:    var(--c-cursor);
+}
+
+.login-input::placeholder {
+  color: var(--c-line);
+}
+
+.login-input:focus {
+  border-color: var(--c-cursor);
+  color:        var(--c-cursor);
+}
+
+.login-submit {
+  margin-top:  4px;
+  background:  var(--c-bg);
+  color:       var(--c-white);
+  border:      2px solid var(--c-white);
+  padding:     10px 0;
+  font-family: var(--font);
+  font-size:   15px;
+  letter-spacing: 0.1em;
+  cursor:      pointer;
+  width:       100%;
+  text-align:  left;
+  padding-left: 22px;
+  position:    relative;
+}
+
+.login-submit::before {
+  content:  '';
+  position: absolute;
+  left:     8px;
+  top:      50%;
+  transform: translateY(-50%);
+}
+
+.login-submit:hover {
+  color:        var(--c-cursor);
+  border-color: var(--c-cursor);
+}
+
+.login-submit:hover::before {
+  content: '>';
+  color:   var(--c-cursor);
+}
+
+.login-error {
+  font-size: 12px;
+  color:     var(--c-warn);
+  min-height: 18px;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   タイマーページ (timer.html) レイアウト
+   RPG戦闘画面風: 上ステータス / 中央バトルフィールド / 下コマンド+情報
+   ============================================================ */
+
+/* バトルフィールド (タイマーメインエリア) */
+.battle-field {
+  flex:            1;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  overflow:        hidden;
+  position:        relative;
+  gap:             8px;
+}
+
+/* モンスターゾーン (将来の拡張用プレースホルダー) */
+/*
+ * 将来: #monster-area の innerHTML に SVG / 画像 / Canvas を挿入する
+ * JS で .has-content クラスを付与すると高さが展開される
+ */
+.monster-area {
+  width:      100%;
+  max-height: 0;
+  overflow:   hidden;
+  transition: max-height 0.3s;
+  /* id="monster-area" を差し込み先として使用 */
+}
+.monster-area.has-content {
+  max-height: 50%;
+}
+
+/* タイマー中核表示エリア */
+.timer-core {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             6px;
+}
+
+/* モードラベル [ さぎょう中 ] */
+.timer-mode-label {
+  font-size:   14px;
+  color:       var(--c-gray);
+  letter-spacing: 0.1em;
+}
+
+/* 残り時間デジタル表示 */
+.timer-digits {
+  font-family: var(--font-en);
+  font-size:   clamp(56px, 18vw, 88px);
+  color:       var(--c-white);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 下部2カラム (コマンド + 情報) */
+.timer-bottom {
+  flex-shrink: 0;
+  display:     grid;
+  grid-template-columns: 55% calc(45% - var(--gap));
+  gap:         var(--gap);
+  height:      175px;
+}
+
+/* タイマーメッセージ */
+.timer-message {
+  position:    absolute;
+  bottom:      8px;
+  left:        0;
+  right:       0;
+  text-align:  center;
+  font-size:   12px;
+  padding:     4px 8px;
+  letter-spacing: 0.05em;
+  background:  var(--c-bg);
+}
+.timer-message.hidden { display: none; }
+.timer-message--ok   { color: var(--c-ok); }
+.timer-message--warn { color: var(--c-warn); }
+.timer-message--info { color: var(--c-gray); }
+
+/* 情報ウィンドウ (右下) */
+.info-win {
+  overflow: hidden;
+  display:  flex;
+  flex-direction: column;
+  gap:      4px;
+}
+
+.info-row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+  border-bottom:   1px solid var(--c-line);
+  padding:         3px 0;
+  font-size:       13px;
+}
+
+.info-key {
+  color:     var(--c-gray);
+  font-size: 11px;
+}
+.info-val {
+  color: var(--c-white);
+}
+
+/* セッション進捗ドット */
+.session-dots {
+  display: flex;
+  gap:     6px;
+  padding: 4px 0;
+}
+
+.session-dot {
+  width:  12px;
+  height: 12px;
+  border: 2px solid var(--c-gray);
+  background: transparent;
+  display: inline-block;
+}
+
+.session-dot--filled {
+  background:   var(--c-white);
+  border-color: var(--c-white);
+}
+
+/* ============================================================
+   過去1か月ページ (monthly.html)
+   ============================================================ */
+.monthly-page {
+  flex: 1;
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--gap);
+  overflow:       hidden;
+}
+
+.monthly-summary {
+  flex-shrink: 0;
+  display:     flex;
+  align-items: baseline;
+  gap:         12px;
+  padding:     8px 12px;
+}
+
+.monthly-summary-label {
+  font-size:   12px;
+  color:       var(--c-gray);
+  letter-spacing: 0.05em;
+}
+
+.monthly-summary-value {
+  font-size:   clamp(20px, 6vw, 28px);
+  color:       var(--c-white);
+  font-family: var(--font-en);
+}
+
+/* グラフウィンドウ */
+.chart-win {
+  flex:     1;
+  overflow: hidden;
+  display:  flex;
+  flex-direction: column;
+}
+
+.chart-status {
+  font-size: 12px;
+  color:     var(--c-gray);
+  padding:   4px 0;
+  min-height: 18px;
+}
+
+/* 横棒グラフ本体 */
+#chart-area {
+  flex:       1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* グラフ行 (1日 = 1行) */
+.chart-row {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+  padding:     3px 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.chart-date {
+  flex-shrink: 0;
+  width:       34px;
+  font-size:   11px;
+  color:       var(--c-gray);
+  font-family: var(--font-en);
+  text-align:  right;
+}
+
+.chart-track {
+  flex:     1;
+  height:   14px;
+  background: var(--c-bar-bg);
+  border:   1px solid var(--c-line);
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-fill {
+  height:     100%;
+  background: var(--c-bar-fill-white);
+  min-width:  0;
+  transition: width 0.4s ease;
+}
+
+.chart-fill--zero {
+  background: var(--c-line);
+  width:      100% !important;
+  opacity:    0.3;
+}
+
+.chart-dur {
+  flex-shrink: 0;
+  width:       46px;
+  font-size:   11px;
+  color:       var(--c-white);
+  font-family: var(--font-en);
+  text-align:  right;
+}
+
+/* ============================================================
+   全期間ページ (total.html) - RPG戦闘画面風レイアウト
+   ============================================================ */
+.total-page {
+  flex: 1;
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--gap);
+  overflow-y:     auto;
+}
+
+/* 合計時間 大表示ウィンドウ */
+.total-score-win {
+  flex-shrink: 0;
+  text-align:  center;
+  padding:     14px 16px;
+}
+
+.total-score-label {
+  font-size:   12px;
+  color:       var(--c-gray);
+  letter-spacing: 0.1em;
+  display:     block;
+  margin-bottom: 6px;
+}
+
+.total-score-value {
+  font-size:   clamp(36px, 12vw, 56px);
+  color:       var(--c-white);
+  font-family: var(--font-en);
+  letter-spacing: 0.06em;
+  display:     block;
+}
+
+.total-status-msg {
+  font-size: 12px;
+  color:     var(--c-gray);
+  min-height: 18px;
+  margin-top: 4px;
+}
+
+/*
+ * モンスター表示ウィンドウ (最大エリア)
+ * 将来: #monster-display-zone に SVG / 画像 / アニメーションを差し込む
+ */
+.monster-win {
+  flex:     1;
+  display:  flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 160px;
+}
+
+.monster-display-zone {
+  /* id="monster-display-zone" が差し込み先 */
+  flex:            1;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  border:          1px dashed var(--c-line);
+  margin:          8px 0;
+  background:      #080808;
+  min-height:      120px;
+  position:        relative;
+}
+
+.monster-placeholder-text {
+  text-align:  center;
+  color:       var(--c-line);
+  font-size:   12px;
+  letter-spacing: 0.1em;
+  line-height: 1.8;
+}
+
+/* 成長情報エリア */
+.growth-area {
+  flex-shrink: 0;
+  padding:     var(--pad);
+}
+
+.growth-row {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  margin:      4px 0;
+}
+
+.growth-key {
+  flex-shrink: 0;
+  width:       30px;
+  font-size:   11px;
+  color:       var(--c-gray);
+}
+
+.growth-track {
+  flex:     1;
+  height:   12px;
+  background: var(--c-bar-bg);
+  border:   1px solid var(--c-line);
+  overflow: hidden;
+}
+
+.growth-bar {
+  height:     100%;
+  background: var(--c-white);
+  transition: width 0.6s ease;
+  min-width:  0;
+}
+
+.growth-val {
+  flex-shrink: 0;
+  width:       48px;
+  font-size:   11px;
+  color:       var(--c-white);
+  text-align:  right;
+  font-family: var(--font-en);
+}
+
+/* 将来拡張用の注記エリア */
+.total-note-win {
+  flex-shrink: 0;
+  padding:     8px 12px;
+}
+
+.total-note-text {
+  font-size:   11px;
+  color:       var(--c-gray);
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+}
+
+/* ポモドーロカウント */
+.pomodoro-count-row {
+  display:     flex;
+  align-items: baseline;
+  gap:         8px;
+  margin-top:  6px;
+  padding-top: 6px;
+  border-top:  1px solid var(--c-line);
+}
+
+.pomodoro-count-label {
+  font-size: 11px;
+  color:     var(--c-gray);
+}
+
+.pomodoro-count-value {
+  font-size:   18px;
+  color:       var(--c-white);
+  font-family: var(--font-en);
+}
+
+/* ============================================================
+   フッター (footer.html 内のスタイル)
+   RPGのコマンドバー / メニュー帯風
+   ============================================================ */
+.app-footer {
+  background:  var(--c-bg);
+  border-top:  4px solid var(--c-white);
+  height:      var(--footer-h);
+  flex-shrink: 0;
+}
+
+/* 二重線 (フッター上部の内側ライン) */
+.app-footer::before {
+  content:  '';
+  display:  block;
+  border-top: 1px solid var(--c-white);
+  margin:   3px 0 0;
+}
+
+.footer-nav {
+  display:         flex;
+  height:          calc(var(--footer-h) - 8px); /* 二重線分を引く */
+  /* 右から: タイマー | レポート | モンスター = 左から: モンスター, レポート, タイマー */
+}
+
+.footer-nav-btn {
+  flex:            1;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             3px;
+  background:      none;
+  border:          none;
+  border-left:     1px solid var(--c-line);
+  color:           var(--c-gray);
+  font-family:     var(--font);
+  font-size:       10px;
+  letter-spacing:  0.06em;
+  cursor:          pointer;
+  padding:         4px;
+  text-decoration: none;
+  outline:         none;
+  /* クリックしやすい最小タッチ領域 */
+  min-height:      44px;
+}
+
+/* 一番左のボタンは左ボーダーなし */
+.footer-nav-btn:first-child {
+  border-left: none;
+}
+
+.footer-nav-btn:hover {
+  background: var(--c-dark);
+  color:      var(--c-white);
+}
+
+/* アクティブページ */
+.footer-nav-btn.is-active {
+  color:      var(--c-cursor);
+  background: var(--c-dark);
+  border-top: 2px solid var(--c-cursor);
+}
+
+/* SVG アイコンのプレースホルダー */
+.footer-icon {
+  width:   22px;
+  height:  22px;
+  display: flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+.footer-icon svg {
+  stroke: currentColor;
+  fill:   none;
+}
+
+.footer-label {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   レスポンシブ (PC 幅が広い場合)
+   ============================================================ */
+@media (min-width: 540px) {
+  body {
+    border-left:  2px solid var(--c-line);
+    border-right: 2px solid var(--c-line);
+  }
+}
+
+/* 縦に余裕がある端末: バトルフィールドを少し大きく */
+@media (min-height: 700px) {
+  .timer-bottom {
+    height: 200px;
+  }
 }

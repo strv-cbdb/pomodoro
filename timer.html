@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>タイマー - STUDY QUEST</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!--
+    タイマーページ
+    レイアウト: RPG戦闘画面風
+      [上] ステータスバー (プレイヤー名 / モード)
+      [中] バトルフィールド (タイマー大表示 / 将来モンスターエリア)
+      [下左] コマンドウィンドウ (開始/一時停止/リセット/スキップ)
+      [下右] 情報ウィンドウ (セッション数/進捗ドット)
+      [底] フッター (footer.html から挿入)
+  -->
+
+  <div class="page-wrap">
+
+    <!-- ============================================================
+         ステータスバー (上部)
+         ============================================================ -->
+    <div class="win status-bar">
+      <!-- ウィンドウラベル -->
+      <span class="win-label">ステータス</span>
+
+      <!-- プレイヤー名 -->
+      <div class="status-item">
+        <span class="status-label">プレイヤー</span>
+        <span class="status-value" id="status-username">---</span>
+      </div>
+
+      <!-- 現在モード -->
+      <div class="status-item">
+        <span class="status-label">モード</span>
+        <span class="status-value" id="status-mode-sub">さぎょう</span>
+      </div>
+
+      <!-- 利用者変更ボタン -->
+      <button class="change-user-btn" id="change-user-btn" type="button">
+        利用者変更
+      </button>
+    </div>
+
+    <!-- ============================================================
+         バトルフィールド (中央メインエリア)
+         タイマー大表示 + 将来のモンスター/演出エリア
+         ============================================================ -->
+    <div class="win battle-field">
+      <span class="win-label">バトルフィールド</span>
+
+      <!--
+        モンスター表示エリア (将来拡張用)
+        id="monster-area" を差し込み先として使用する
+        JS で .has-content を付与すると展開される
+      -->
+      <div class="monster-area" id="monster-area">
+        <!-- 将来: ここに SVG モンスター / CSS アニメーション / Canvas を挿入 -->
+      </div>
+
+      <!-- タイマー本体 -->
+      <div class="timer-core">
+        <!-- モードラベル -->
+        <div class="timer-mode-label" id="timer-mode-label">[ さぎょう中 ]</div>
+
+        <!-- 残り時間 (大文字デジタル表示) -->
+        <div class="timer-digits" id="timer-digits" aria-live="polite" aria-atomic="true">
+          25:00
+        </div>
+      </div>
+
+      <!-- 完了・保存メッセージ (画面下部に重ねて表示) -->
+      <div class="timer-message hidden" id="timer-message" role="status"></div>
+    </div>
+
+    <!-- ============================================================
+         下部2カラム: コマンドウィンドウ + 情報ウィンドウ
+         ============================================================ -->
+    <div class="timer-bottom">
+
+      <!-- コマンドウィンドウ (左) -->
+      <div class="win">
+        <span class="win-label">コマンド</span>
+        <div class="cmd-list" role="group" aria-label="タイマー操作">
+
+          <!-- 開始 / 再開 -->
+          <button type="button" class="cmd-item" id="cmd-start">
+            開始
+          </button>
+
+          <!-- 一時停止 (開始後に表示) -->
+          <button type="button" class="cmd-item hidden" id="cmd-pause">
+            一時停止
+          </button>
+
+          <!-- リセット -->
+          <button type="button" class="cmd-item" id="cmd-reset">
+            リセット
+          </button>
+
+          <!-- スキップ -->
+          <button type="button" class="cmd-item" id="cmd-skip">
+            スキップ
+          </button>
+
+        </div>
+      </div>
+
+      <!-- 情報ウィンドウ (右) -->
+      <div class="win info-win">
+        <span class="win-label">じょうほう</span>
+
+        <!-- セッション進捗 -->
+        <div class="info-row">
+          <span class="info-key">セッション</span>
+          <span class="info-val" id="info-session">0 / 4</span>
+        </div>
+
+        <!-- セッション進捗ドット (■□□□ 形式) -->
+        <div class="session-dots" id="session-dots" aria-label="セッション進捗">
+          <span class="session-dot" aria-label="1回目"></span>
+          <span class="session-dot" aria-label="2回目"></span>
+          <span class="session-dot" aria-label="3回目"></span>
+          <span class="session-dot" aria-label="4回目"></span>
+        </div>
+
+        <!-- 次の休憩 -->
+        <div class="info-row">
+          <span class="info-key">次の休憩</span>
+          <span class="info-val" id="info-next-break">5分</span>
+        </div>
+
+      </div>
+
+    </div><!-- /timer-bottom -->
+
+  </div><!-- /page-wrap -->
+
+  <!-- フッター (footer.html から JS で挿入される) -->
+  <div id="footer-container"></div>
+
+  <!-- スクリプト -->
+  <script src="./js/supabase-config.js"></script>
+  <script src="./js/db.js"></script>
+  <script src="./js/app-common.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/footer.js"></script>
+  <script src="./js/timer.js"></script>
+
+</body>
+</html>

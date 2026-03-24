@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>レポート - STUDY QUEST</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!--
+    過去1か月ページ
+    RPGのステータス一覧 / 戦績画面風レイアウト
+      [上] ステータスバー (プレイヤー名 / 合計)
+      [中] 横棒グラフ (日ごとの勉強時間)
+      [底] フッター (レポートをアクティブ表示)
+  -->
+
+  <div class="page-wrap monthly-page">
+
+    <!-- ステータスバー -->
+    <div class="win status-bar">
+      <span class="win-label">ステータス</span>
+
+      <div class="status-item">
+        <span class="status-label">プレイヤー</span>
+        <span class="status-value" id="status-username">---</span>
+      </div>
+
+      <button class="change-user-btn" id="change-user-btn" type="button">
+        利用者変更
+      </button>
+    </div>
+
+    <!-- 月間合計サマリー -->
+    <div class="win monthly-summary">
+      <span class="win-label">がっけいき</span>
+      <span class="monthly-summary-label">月間合計 :</span>
+      <span class="monthly-summary-value" id="monthly-total">---</span>
+    </div>
+
+    <!-- 棒グラフウィンドウ -->
+    <div class="win chart-win">
+      <span class="win-label">ログ : 過去31日</span>
+
+      <!-- ローディング / エラーメッセージ -->
+      <p class="chart-status text-gray" id="chart-status" role="status">
+        データを取得中...
+      </p>
+
+      <!--
+        横棒グラフ描画エリア
+        monthly.js が renderHorizontalChart() でここに行を挿入する
+        各行: [日付ラベル] [バートラック====] [時間ラベル]
+      -->
+      <div id="chart-area" aria-label="日ごとの勉強時間グラフ">
+        <!-- JS によって動的に生成される -->
+      </div>
+
+    </div>
+
+  </div><!-- /page-wrap -->
+
+  <!-- フッター -->
+  <div id="footer-container"></div>
+
+  <!-- スクリプト -->
+  <script src="./js/supabase-config.js"></script>
+  <script src="./js/db.js"></script>
+  <script src="./js/app-common.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/footer.js"></script>
+  <script src="./js/monthly.js"></script>
+
+</body>
+</html>

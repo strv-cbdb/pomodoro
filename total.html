@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>モンスター - STUDY QUEST</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!--
+    全期間ページ (モンスター)
+    RPG戦闘画面風レイアウト:
+      [上] ステータス枠 (プレイヤー名 / 合計時間)
+      [中] モンスター表示枠 (将来の成長モンスター用大エリア)
+      [中] 成長情報枠 (LV / EXP バー)
+      [下] 注記枠 (将来拡張の説明)
+      [底] フッター (モンスターをアクティブ表示)
+  -->
+
+  <div class="page-wrap total-page">
+
+    <!-- ステータス枠 + 合計時間スコア -->
+    <div class="win total-score-win">
+      <span class="win-label">ぜんきせきさん</span>
+
+      <span class="total-score-label">TOTAL STUDY TIME</span>
+      <span class="total-score-value" id="total-duration">---</span>
+      <p class="total-status-msg text-gray" id="total-status" role="status"></p>
+
+      <!-- ポモドーロ合計 -->
+      <div class="pomodoro-count-row">
+        <span class="pomodoro-count-label">ポモドーロ合計 :</span>
+        <span class="pomodoro-count-value" id="monster-pomodoros">---</span>
+      </div>
+    </div>
+
+    <!-- ================================================================
+         モンスター表示枠 (将来拡張の最重要エリア)
+
+         - id="monster-display-zone" が SVG / 画像 / アニメーションの差し込み先
+         - CSS の .monster-display-zone に min-height を設定し広めに確保
+         - 将来: JS の updateMonsterStatus() が data-level 属性で段階を管理
+         ================================================================ -->
+    <div class="win monster-win">
+      <span class="win-label">モンスター</span>
+
+      <!--
+        モンスター表示ゾーン
+        id="monster-display-zone" を差し込み先として使用する
+        将来: SVG モンスター / CSS アニメ / Canvas をここに挿入
+      -->
+      <div class="monster-display-zone" id="monster-display-zone">
+        <div class="monster-placeholder-text" aria-label="モンスター表示エリア準備中">
+          MONSTER DISPLAY AREA<br>
+          <span class="text-gray">-- COMING SOON --</span><br>
+          <span class="text-gray" style="font-size:11px">
+            勉強時間でモンスターが成長します
+          </span>
+        </div>
+      </div>
+
+      <!-- 成長ステータスバー -->
+      <div class="growth-area">
+
+        <!-- LV バー -->
+        <div class="growth-row">
+          <span class="growth-key">LV</span>
+          <div class="growth-track">
+            <div class="growth-bar" id="monster-lv-bar" style="width: 0%"></div>
+          </div>
+          <span class="growth-val" id="monster-lv">--</span>
+        </div>
+
+        <!-- EXP バー -->
+        <div class="growth-row">
+          <span class="growth-key">EXP</span>
+          <div class="growth-track">
+            <div class="growth-bar" id="monster-exp-bar" style="width: 0%"></div>
+          </div>
+          <span class="growth-val" id="monster-exp">--</span>
+        </div>
+
+      </div>
+    </div><!-- /monster-win -->
+
+    <!-- ================================================================
+         将来拡張用の注記枠 (コマンド枠 / 説明枠 に相当)
+         将来ここに「モンスター情報」「スキル一覧」などを追加できる
+         ================================================================ -->
+    <div class="win total-note-win">
+      <span class="win-label">じょうほう</span>
+      <p class="total-note-text">
+        * 25分の作業完了 = 1 ポモドーロ = 1 EXP<br>
+        * 10 EXP たまるとレベルアップします<br>
+        * モンスターは成長すると姿が変わります (準備中)
+      </p>
+    </div>
+
+  </div><!-- /page-wrap -->
+
+  <!-- フッター -->
+  <div id="footer-container"></div>
+
+  <!-- スクリプト -->
+  <script src="./js/supabase-config.js"></script>
+  <script src="./js/db.js"></script>
+  <script src="./js/app-common.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/footer.js"></script>
+  <script src="./js/total.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!--
+  footer.html
+  共通フッター HTML フラグメント
+
+  このファイルは単独でブラウザに開くものではなく、
+  js/footer.js の loadFooter() によって各ページに挿入される。
+
+  フッターの並び (左から): モンスター | レポート | タイマー
+  = 右から: タイマー | レポート | モンスター
+
+  data-page 属性を基準に、footer.js が is-active クラスを付与する。
+-->
+<footer class="app-footer">
+  <!-- 二重線は CSS の ::before で実装済み -->
+  <nav class="footer-nav" aria-label="メインナビゲーション">
+
+    <!--
+      DOM 順: モンスター → レポート → タイマー
+      flex で左から並ぶため、右端が タイマー になる
+    -->
+
+    <!-- モンスター (全期間ページへ) -->
+    <a href="./total.html" class="footer-nav-btn" data-page="total">
+      <span class="footer-icon" aria-hidden="true">
+        <!--
+          SVG アイコン差し込み用プレースホルダー (モンスターアイコン)
+          後から SVG を差し替えてください
+        -->
+        <svg viewBox="0 0 22 22" width="22" height="22"
+             stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="square" stroke-linejoin="miter">
+          <rect x="2" y="2" width="18" height="18"/>
+        </svg>
+      </span>
+      <span class="footer-label">モンスター</span>
+    </a>
+
+    <!-- レポート (過去1か月ページへ) -->
+    <a href="./monthly.html" class="footer-nav-btn" data-page="monthly">
+      <span class="footer-icon" aria-hidden="true">
+        <!--
+          SVG アイコン差し込み用プレースホルダー (レポートアイコン)
+          後から SVG を差し替えてください
+        -->
+        <svg viewBox="0 0 22 22" width="22" height="22"
+             stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="square" stroke-linejoin="miter">
+          <rect x="2" y="2" width="18" height="18"/>
+        </svg>
+      </span>
+      <span class="footer-label">レポート</span>
+    </a>
+
+    <!-- タイマー (タイマーページへ) -->
+    <a href="./timer.html" class="footer-nav-btn" data-page="timer">
+      <span class="footer-icon" aria-hidden="true">
+        <!--
+          SVG アイコン差し込み用プレースホルダー (タイマーアイコン)
+          後から SVG を差し替えてください
+        -->
+        <svg viewBox="0 0 22 22" width="22" height="22"
+             stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="square" stroke-linejoin="miter">
+          <rect x="2" y="2" width="18" height="18"/>
+        </svg>
+      </span>
+      <span class="footer-label">タイマー</span>
+    </a>
+
+  </nav>
+</footer>

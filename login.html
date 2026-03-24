@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>STUDY QUEST</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!--
+    ログインページ
+    - フッターなし
+    - IndexedDB にユーザー名があれば timer.html へ自動遷移
+    - タイトル画面 + ユーザー名入力パネルのみ
+  -->
+
+  <main class="login-page" id="login-page">
+
+    <!-- ゲームタイトル -->
+    <header class="login-title">
+      <span class="login-title__main">STUDY QUEST</span>
+      <span class="login-title__sub">-- LEARNING POMODORO --</span>
+    </header>
+
+    <!-- ログインパネル (RPG のコマンド選択ウィンドウ風) -->
+    <div class="win login-panel" id="login-panel">
+      <p class="login-panel-title">[ プレイヤー セレクト ]</p>
+
+      <div class="login-form">
+        <label class="login-label" for="username-input">
+          なまえ :
+        </label>
+        <input
+          type="text"
+          id="username-input"
+          class="login-input"
+          placeholder="YOUR NAME"
+          maxlength="20"
+          autocomplete="off"
+          spellcheck="false"
+          autofocus
+        >
+        <button
+          type="button"
+          id="login-submit"
+          class="login-submit"
+        >
+          開始する
+        </button>
+        <!-- エラーメッセージ -->
+        <p class="login-error" id="login-error" role="alert"></p>
+      </div>
+    </div>
+
+  </main>
+
+  <!--
+    スクリプト読み込み順序:
+    1. supabase-config.js ... 定数定義
+    2. db.js             ... IndexedDB 操作
+    3. app-common.js     ... 共通ユーティリティ (registerServiceWorker)
+    4. auth.js           ... ログイン処理
+  -->
+  <script src="./js/supabase-config.js"></script>
+  <script src="./js/db.js"></script>
+  <script src="./js/app-common.js"></script>
+  <script src="./js/auth.js"></script>
+
+  <script>
+    // ログインページ初期化
+    // IndexedDB にユーザー名が残っていれば timer.html へスキップ
+    document.addEventListener('DOMContentLoaded', () => {
+      initLoginPage(
+        'login-panel',     // フォームラッパー ID
+        'username-input',  // input ID
+        'login-submit',    // ボタン ID
+        'login-error'      // エラー表示 ID
+      );
+      registerServiceWorker();
+    });
+  </script>
+
+</body>
+</html>

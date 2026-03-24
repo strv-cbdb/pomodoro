@@ -1,0 +1,43 @@
+{
+  "name": "STUDY QUEST",
+  "short_name": "STUDYQUEST",
+  "description": "学習用ポモドーロタイマー - RPG風",
+  "start_url": "./login.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "ja",
+  "categories": ["education", "productivity"],
+
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "タイマー",
+      "short_name": "タイマー",
+      "description": "ポモドーロタイマーを開く",
+      "url": "./timer.html",
+      "icons": [
+        {
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
