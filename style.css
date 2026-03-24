@@ -3,29 +3,33 @@
    STUDY QUEST - RPG戦闘画面風ポモドーロアプリ
 
    デザイン方針:
-     - 黒背景 / 白い太枠 / 角張ったウィンドウ
-     - ドット絵ファミコン / PCゲーム風のUI
+     - 白背景 / 黒い太枠 / 角張ったウィンドウ
+     - 昔のゲーム攻略本 / RPGのUI図版のような印象
      - コマンド選択ウィンドウのような見た目
      - 余計なグラデーション・グロー・角丸は禁止
-     - 白黒ベース + 最小限の差し色 (黄 / 緑 / 橙)
+     - 白黒ベース: 枠線・文字組み・情報パネル構成でレトロ感を出す
    ============================================================ */
 
 /* ============================================================
    CSS 変数
    ============================================================ */
 :root {
-  /* カラー */
-  --c-bg:       #000000;   /* 背景 (黒) */
-  --c-white:    #ffffff;   /* 主テキスト / 枠線 */
-  --c-gray:     #888888;   /* サブテキスト */
-  --c-dark:     #111111;   /* ウィンドウ内サブ背景 */
-  --c-line:     #333333;   /* 区切り線 */
-  --c-cursor:   #ffff00;   /* コマンドカーソル / アクティブ */
-  --c-ok:       #55ff55;   /* 成功 / 正常 */
-  --c-warn:     #ff8800;   /* 警告 */
-  --c-bar:      #cccccc;   /* グラフ棒 */
-  --c-bar-bg:   #222222;   /* グラフ棒のトラック */
-  --c-bar-fill-white: #ffffff;
+  /* カラー (白背景テーマ) */
+  --c-bg:       #ffffff;   /* 背景 (白) */
+  --c-white:    #000000;   /* 主テキスト / 枠線 (黒) */
+  --c-gray:     #666666;   /* サブテキスト */
+  --c-dark:     #eeeeee;   /* ウィンドウ内サブ背景 */
+  --c-line:     #bbbbbb;   /* 区切り線 */
+  --c-cursor:   #000000;   /* コマンドカーソル / アクティブ */
+  --c-ok:       #005500;   /* 成功 / 正常 */
+  --c-warn:     #cc3300;   /* 警告 */
+  --c-bar:      #333333;   /* グラフ棒 */
+  --c-bar-bg:   #cccccc;   /* グラフ棒のトラック */
+  --c-bar-fill-white: #000000;
+
+  /* ホバー / 選択時 (反転) */
+  --c-hover-bg:   #000000;
+  --c-hover-text: #ffffff;
 
   /* ウィンドウ枠線 */
   --win-border:   4px solid var(--c-white);
@@ -33,9 +37,9 @@
   --win-inner-gap: 3px;                    /* 外枠〜内線の隙間 */
 
   /* レイアウト */
-  --footer-h: 56px;
-  --gap:      3px;   /* ウィンドウ間の隙間 */
-  --pad:      10px;  /* ウィンドウ内パディング */
+  --footer-h: 60px;
+  --gap:      8px;   /* ウィンドウ間の隙間 */
+  --pad:      14px;  /* ウィンドウ内パディング */
 
   /* タイポグラフィ */
   --font: 'MS Gothic', 'Osaka', 'ＭＳ ゴシック', 'Hiragino Kaku Gothic Pro', monospace;
@@ -57,8 +61,9 @@ html {
   font-family: var(--font);
   font-size:  15px;
   line-height: 1.5;
+  height:     100%;
 
-  /* ドット感: フォントのアンチエイリアスを無効化 */
+  /* ドット感: フォントのアンチエイリアスを抑制 */
   -webkit-font-smoothing: none;
   font-smooth: never;
   text-rendering: optimizeSpeed;
@@ -71,7 +76,8 @@ body {
   height:          100dvh;
   overflow:        hidden;
   /* PC では中央揃え */
-  max-width:       600px;
+  max-width:       720px;
+  width:           100%;
   margin:          0 auto;
 }
 
@@ -130,6 +136,7 @@ body {
 /* フッターコンテナ (footer.html が挿入される) */
 #footer-container {
   flex-shrink: 0;
+  width:       100%;
 }
 
 /* ============================================================
@@ -142,7 +149,7 @@ body {
   gap:         12px;
   flex-wrap:   wrap;
   min-height:  44px;
-  padding:     6px 12px;
+  padding:     8px 14px;
 }
 
 .status-item {
@@ -169,7 +176,7 @@ body {
   background:     var(--c-bg);
   color:          var(--c-gray);
   border:         2px solid var(--c-gray);
-  padding:        3px 8px;
+  padding:        4px 10px;
   font-family:    var(--font);
   font-size:      11px;
   letter-spacing: 0.05em;
@@ -177,8 +184,9 @@ body {
   white-space:    nowrap;
 }
 .change-user-btn:hover {
-  color:        var(--c-cursor);
-  border-color: var(--c-cursor);
+  background:   var(--c-hover-bg);
+  color:        var(--c-hover-text);
+  border-color: var(--c-hover-bg);
 }
 
 /* ============================================================
@@ -188,7 +196,7 @@ body {
   display:        flex;
   flex-direction: column;
   gap:            2px;
-  margin-top:     6px;
+  margin-top:     8px;
 }
 
 .cmd-item {
@@ -200,7 +208,7 @@ body {
   font-family:    var(--font);
   font-size:      15px;
   text-align:     left;
-  padding:        4px 4px 4px 22px;
+  padding:        5px 6px 5px 24px;
   cursor:         pointer;
   position:       relative;
   letter-spacing: 0.05em;
@@ -218,13 +226,14 @@ body {
 
 .cmd-item:hover,
 .cmd-item:focus {
-  color: var(--c-cursor);
+  background: var(--c-hover-bg);
+  color:      var(--c-hover-text);
 }
 
 .cmd-item:hover::before,
 .cmd-item:focus::before {
   content: '>';
-  color:   var(--c-cursor);
+  color:   var(--c-hover-text);
 }
 
 .cmd-item:disabled {
@@ -260,8 +269,8 @@ body {
   flex-direction:  column;
   justify-content: center;
   align-items:     center;
-  padding:         16px;
-  gap:             20px;
+  padding:         20px 16px;
+  gap:             24px;
 }
 
 /* タイトルロゴ */
@@ -282,29 +291,29 @@ body {
   font-size:   clamp(11px, 3vw, 14px);
   color:       var(--c-gray);
   display:     block;
-  margin-top:  4px;
+  margin-top:  6px;
   letter-spacing: 0.15em;
 }
 
 /* ログインパネル */
 .login-panel {
   width:     100%;
-  max-width: 340px;
-  padding:   20px 16px;
+  max-width: 360px;
+  padding:   20px 18px;
 }
 
 .login-panel-title {
   font-size:   12px;
   color:       var(--c-gray);
   letter-spacing: 0.1em;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   text-align:  center;
 }
 
 .login-form {
   display:        flex;
   flex-direction: column;
-  gap:            10px;
+  gap:            12px;
 }
 
 .login-label {
@@ -314,7 +323,7 @@ body {
 
 .login-input {
   width:          100%;
-  background:     #000;
+  background:     #ffffff;
   color:          var(--c-white);
   border:         2px solid var(--c-white);
   padding:        8px 10px;
@@ -331,7 +340,8 @@ body {
 
 .login-input:focus {
   border-color: var(--c-cursor);
-  color:        var(--c-cursor);
+  outline:      2px solid var(--c-cursor);
+  outline-offset: 1px;
 }
 
 .login-submit {
@@ -346,7 +356,7 @@ body {
   cursor:      pointer;
   width:       100%;
   text-align:  left;
-  padding-left: 22px;
+  padding-left: 24px;
   position:    relative;
 }
 
@@ -359,13 +369,14 @@ body {
 }
 
 .login-submit:hover {
-  color:        var(--c-cursor);
-  border-color: var(--c-cursor);
+  background:   var(--c-hover-bg);
+  color:        var(--c-hover-text);
+  border-color: var(--c-hover-bg);
 }
 
 .login-submit:hover::before {
   content: '>';
-  color:   var(--c-cursor);
+  color:   var(--c-hover-text);
 }
 
 .login-error {
@@ -389,20 +400,15 @@ body {
   justify-content: center;
   overflow:        hidden;
   position:        relative;
-  gap:             8px;
+  gap:             10px;
 }
 
 /* モンスターゾーン (将来の拡張用プレースホルダー) */
-/*
- * 将来: #monster-area の innerHTML に SVG / 画像 / Canvas を挿入する
- * JS で .has-content クラスを付与すると高さが展開される
- */
 .monster-area {
   width:      100%;
   max-height: 0;
   overflow:   hidden;
   transition: max-height 0.3s;
-  /* id="monster-area" を差し込み先として使用 */
 }
 .monster-area.has-content {
   max-height: 50%;
@@ -413,10 +419,10 @@ body {
   display:         flex;
   flex-direction:  column;
   align-items:     center;
-  gap:             6px;
+  gap:             8px;
 }
 
-/* モードラベル [ さぎょう中 ] */
+/* モードラベル */
 .timer-mode-label {
   font-size:   14px;
   color:       var(--c-gray);
@@ -426,7 +432,7 @@ body {
 /* 残り時間デジタル表示 */
 .timer-digits {
   font-family: var(--font-en);
-  font-size:   clamp(56px, 18vw, 88px);
+  font-size:   clamp(52px, 16vw, 84px);
   color:       var(--c-white);
   letter-spacing: 0.06em;
   line-height: 1;
@@ -439,7 +445,7 @@ body {
   display:     grid;
   grid-template-columns: 55% calc(45% - var(--gap));
   gap:         var(--gap);
-  height:      175px;
+  height:      180px;
 }
 
 /* タイマーメッセージ */
@@ -472,7 +478,7 @@ body {
   justify-content: space-between;
   align-items:     baseline;
   border-bottom:   1px solid var(--c-line);
-  padding:         3px 0;
+  padding:         4px 0;
   font-size:       13px;
 }
 
@@ -488,7 +494,7 @@ body {
 .session-dots {
   display: flex;
   gap:     6px;
-  padding: 4px 0;
+  padding: 5px 0;
 }
 
 .session-dot {
@@ -520,7 +526,7 @@ body {
   display:     flex;
   align-items: baseline;
   gap:         12px;
-  padding:     8px 12px;
+  padding:     10px 14px;
 }
 
 .monthly-summary-label {
@@ -563,7 +569,7 @@ body {
   display:     flex;
   align-items: center;
   gap:         6px;
-  padding:     3px 0;
+  padding:     4px 0;
   border-bottom: 1px solid var(--c-line);
 }
 
@@ -622,7 +628,7 @@ body {
 .total-score-win {
   flex-shrink: 0;
   text-align:  center;
-  padding:     14px 16px;
+  padding:     16px 18px;
 }
 
 .total-score-label {
@@ -634,7 +640,7 @@ body {
 }
 
 .total-score-value {
-  font-size:   clamp(36px, 12vw, 56px);
+  font-size:   clamp(34px, 11vw, 54px);
   color:       var(--c-white);
   font-family: var(--font-en);
   letter-spacing: 0.06em;
@@ -648,10 +654,7 @@ body {
   margin-top: 4px;
 }
 
-/*
- * モンスター表示ウィンドウ (最大エリア)
- * 将来: #monster-display-zone に SVG / 画像 / アニメーションを差し込む
- */
+/* モンスター表示ウィンドウ */
 .monster-win {
   flex:     1;
   display:  flex;
@@ -661,14 +664,13 @@ body {
 }
 
 .monster-display-zone {
-  /* id="monster-display-zone" が差し込み先 */
   flex:            1;
   display:         flex;
   align-items:     center;
   justify-content: center;
   border:          1px dashed var(--c-line);
   margin:          8px 0;
-  background:      #080808;
+  background:      #f5f5f5;
   min-height:      120px;
   position:        relative;
 }
@@ -718,7 +720,7 @@ body {
 
 .growth-val {
   flex-shrink: 0;
-  width:       48px;
+  width:       52px;
   font-size:   11px;
   color:       var(--c-white);
   text-align:  right;
@@ -728,7 +730,7 @@ body {
 /* 将来拡張用の注記エリア */
 .total-note-win {
   flex-shrink: 0;
-  padding:     8px 12px;
+  padding:     10px 14px;
 }
 
 .total-note-text {
@@ -743,8 +745,8 @@ body {
   display:     flex;
   align-items: baseline;
   gap:         8px;
-  margin-top:  6px;
-  padding-top: 6px;
+  margin-top:  8px;
+  padding-top: 8px;
   border-top:  1px solid var(--c-line);
 }
 
@@ -768,6 +770,7 @@ body {
   border-top:  4px solid var(--c-white);
   height:      var(--footer-h);
   flex-shrink: 0;
+  width:       100%;
 }
 
 /* 二重線 (フッター上部の内側ライン) */
@@ -779,9 +782,8 @@ body {
 }
 
 .footer-nav {
-  display:         flex;
-  height:          calc(var(--footer-h) - 8px); /* 二重線分を引く */
-  /* 右から: タイマー | レポート | モンスター = 左から: モンスター, レポート, タイマー */
+  display: flex;
+  height:  calc(var(--footer-h) - 8px);
 }
 
 .footer-nav-btn {
@@ -799,10 +801,9 @@ body {
   font-size:       10px;
   letter-spacing:  0.06em;
   cursor:          pointer;
-  padding:         4px;
+  padding:         4px 6px;
   text-decoration: none;
   outline:         none;
-  /* クリックしやすい最小タッチ領域 */
   min-height:      44px;
 }
 
@@ -812,18 +813,18 @@ body {
 }
 
 .footer-nav-btn:hover {
-  background: var(--c-dark);
-  color:      var(--c-white);
+  background: var(--c-hover-bg);
+  color:      var(--c-hover-text);
 }
 
 /* アクティブページ */
 .footer-nav-btn.is-active {
-  color:      var(--c-cursor);
-  background: var(--c-dark);
-  border-top: 2px solid var(--c-cursor);
+  color:        var(--c-hover-text);
+  background:   var(--c-hover-bg);
+  border-top:   2px solid var(--c-hover-bg);
 }
 
-/* SVG アイコンのプレースホルダー */
+/* SVG アイコン */
 .footer-icon {
   width:   22px;
   height:  22px;
@@ -840,21 +841,22 @@ body {
 .footer-label {
   font-size: 10px;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 /* ============================================================
    レスポンシブ (PC 幅が広い場合)
    ============================================================ */
-@media (min-width: 540px) {
+@media (min-width: 600px) {
   body {
-    border-left:  2px solid var(--c-line);
-    border-right: 2px solid var(--c-line);
+    border-left:  2px solid var(--c-white);
+    border-right: 2px solid var(--c-white);
   }
 }
 
-/* 縦に余裕がある端末: バトルフィールドを少し大きく */
+/* 縦に余裕がある端末 */
 @media (min-height: 700px) {
   .timer-bottom {
-    height: 200px;
+    height: 210px;
   }
 }
