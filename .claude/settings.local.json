@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"//wsl.localhost/Ubuntu/home/user/projects/pomodoro\" ls-files supabase-config.js)",
+      "Bash(git -C \"//wsl.localhost/Ubuntu/home/user/projects/pomodoro\" rm --cached supabase-config.js)"
+    ]
+  }
+}

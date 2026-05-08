@@ -1,0 +1,8 @@
+/**
+ * supabase-config.js のテンプレート
+ * このファイルを supabase-config.js にコピーして値を設定してください。
+ * supabase-config.js は .gitignore で管理対象外にしています。
+ */
+
+const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';

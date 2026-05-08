@@ -110,8 +110,8 @@ async function handleLogin() {
     return;
   }
 
-  // 英数字・記号のみ許可 (XSS 対策として最低限の入力制限)
-  if (!/^[\w\-. ]+$/u.test(username)) {
+  // Unicode 文字・数字・一部記号を許可 (日本語も含む)
+  if (!/^[\p{L}\p{N}\-_. ]+$/u.test(username)) {
     showLoginError('使用できない文字が含まれています');
     return;
   }
