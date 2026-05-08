@@ -38,7 +38,7 @@
   --trans: 0.15s ease;
 
   /* フォント */
-  --font: 'Courier New', Courier, monospace;
+  --font: 'Courier New', Courier, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDGothic', Meiryo, monospace;
 }
 
 /* ============================================================
@@ -471,6 +471,48 @@ body::before {
    レポートページ (棒グラフ)
    ============================================================ */
 
+/* タブ (週/月/年) */
+.report-tabs {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: var(--bg-panel);
+  color: var(--text-dim);
+  border: 1px solid var(--border-dim);
+  padding: 9px 0;
+  font-family: var(--font);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all var(--trans);
+}
+
+.tab-btn.active {
+  background: var(--bg-panel-alt);
+  color: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 8px rgba(0, 204, 255, 0.2);
+}
+
+.tab-btn:hover:not(.active) {
+  color: var(--text-bright);
+  border-color: var(--border-bright);
+}
+
+/* バーが少ない場合は横幅を広げる */
+.bars-area--wide {
+  min-width: 100%;
+}
+
+.bars-area--wide .bar-col {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
 /* 合計表示 */
 .stats-summary {
   display: flex;
@@ -532,7 +574,7 @@ body::before {
 
 .y-label {
   font-size: 10px;
-  color: var(--text-dim);
+  color: var(--text-bright);
   letter-spacing: 0.05em;
   line-height: 1;
 }
@@ -557,9 +599,9 @@ body::before {
   position: absolute;
   left: 0;
   right: 0;
-  height: 1px;
-  background: var(--border-dim);
-  opacity: 0.5;
+  height: 2px;
+  background: var(--purple);
+  opacity: 0.3;
 }
 
 /* バーエリア */
@@ -567,7 +609,7 @@ body::before {
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  min-height: 180px;
+  min-height: 300px;
   padding-bottom: 22px; /* 日付ラベル分 */
   position: relative;
   min-width: max-content; /* 横スクロール対応 */
@@ -584,7 +626,7 @@ body::before {
 
 /* バーのラッパー (高さ固定, バーが下から伸びる) */
 .bar-wrap {
-  height: 158px; /* bars-area min-height - padding */
+  height: 278px; /* bars-area min-height - padding */
   width: 100%;
   position: relative;
   display: flex;
@@ -623,7 +665,7 @@ body::before {
 /* 日付ラベル */
 .bar-date {
   font-size: 9px;
-  color: var(--text-dim);
+  color: var(--text-bright);
   margin-top: 4px;
   white-space: nowrap;
   text-align: center;
@@ -718,6 +760,42 @@ body::before {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.status-lv-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.status-lv-row .status-val {
+  min-width: unset;
+  text-align: left;
+}
+
+.status-lv-label {
+  font-size: 11px;
+  color: var(--text-label);
+  letter-spacing: 0.1em;
+  min-width: unset;
+}
+
+.status-name {
+  font-size: 11px;
+  color: var(--text-bright);
+  letter-spacing: 0.1em;
+}
+
+.status-exp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-exp-row .status-val {
+  min-width: unset;
+  text-align: left;
 }
 
 .status-key {

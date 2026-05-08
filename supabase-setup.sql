@@ -31,3 +31,18 @@ create policy "allow select"
   on study_sessions
   for select
   using (true);
+
+-- ============================================================
+-- ユーザープロフィール (モンスター名など)
+-- ============================================================
+
+create table user_profiles (
+  username     text primary key,
+  monster_name text not null
+);
+
+alter table user_profiles enable row level security;
+
+create policy "allow insert" on user_profiles for insert with check (true);
+create policy "allow select" on user_profiles for select using (true);
+create policy "allow update" on user_profiles for update using (true);

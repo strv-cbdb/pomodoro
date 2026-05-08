@@ -4,7 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="description" content="レトロゲーム風ポモドーロ学習アプリ STUDY QUEST">
-  <title>STUDY QUEST</title>
+  <meta name="theme-color" content="#08081a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="ポモドーロ学習">
+  <title>ポモドーロ学習</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,36 +23,79 @@
 
       <!-- ゲームタイトル -->
       <div class="game-title">
-        <div class="title-main">STUDY QUEST</div>
-        <div class="title-sub">-- LEARNING POMODORO --</div>
-        <div class="title-blink">PRESS START</div>
+        <div class="title-main">ポモドーロ学習</div>
+        <div class="title-blink">スタートを押せ</div>
       </div>
 
       <!-- ログインパネル -->
       <div class="login-panel">
-        <div class="panel-title">[ PLAYER SELECT ]</div>
+        <div class="panel-title">[ プレイヤー選択 ]</div>
 
         <div class="form-group">
-          <label for="username-input" class="form-label">NAME :</label>
+          <label for="username-input" class="form-label">なまえ :</label>
           <input
             type="text"
             id="username-input"
             class="retro-input"
-            placeholder="YOUR NAME"
+            placeholder="なまえを入力"
             maxlength="20"
             autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none"
             spellcheck="false"
+            enterkeyhint="go"
           >
         </div>
 
         <button id="login-btn" class="retro-btn retro-btn--primary">
-          START
+          スタート
         </button>
         <!-- エラーメッセージは JS で動的に挿入される -->
       </div>
 
     </div>
   </div><!-- /page-login -->
+
+
+  <!-- ================================================================
+       命名ページ
+       - ログイン後、モンスター名未設定の場合のみ表示
+       - フッターなし
+       ================================================================ -->
+  <div id="page-naming" class="page page-login hidden">
+    <div class="login-container">
+
+      <div class="game-title">
+        <div class="title-main">仲間モンスター</div>
+        <div class="title-sub">-- 名前をつけよう --</div>
+      </div>
+
+      <div class="login-panel">
+        <div class="panel-title">[ モンスター命名 ]</div>
+
+        <div class="form-group">
+          <label for="monster-name-input" class="form-label">なまえ :</label>
+          <input
+            type="text"
+            id="monster-name-input"
+            class="retro-input"
+            placeholder="モンスターの名前"
+            maxlength="20"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
+            enterkeyhint="go"
+          >
+        </div>
+
+        <button id="naming-btn" class="retro-btn retro-btn--primary">
+          決定
+        </button>
+
+      </div>
+    </div>
+  </div><!-- /page-naming -->
 
 
   <!-- ================================================================
@@ -63,7 +110,7 @@
       <div class="user-bar">
         <span id="timer-username" class="username-display"></span>
         <button id="logout-btn" class="retro-btn retro-btn--small">
-          CHANGE USER
+          ユーザー変更
         </button>
       </div>
 
@@ -72,7 +119,7 @@
 
         <!-- 現在モード表示 -->
         <div class="panel timer-mode-panel">
-          <span id="timer-mode-label">WORK</span>
+          <span id="timer-mode-label">作業中</span>
         </div>
 
         <!-- 残り時間 -->
@@ -82,7 +129,7 @@
 
         <!-- ポモドーロ進捗ドット -->
         <div class="timer-progress">
-          <div class="progress-label">SESSION</div>
+          <div class="progress-label">セッション</div>
           <div class="pomodoro-dots" id="pomodoro-dots" aria-label="セッション進捗">
             <span class="dot" data-index="0"></span>
             <span class="dot" data-index="1"></span>
@@ -93,10 +140,10 @@
 
         <!-- 操作ボタン -->
         <div class="timer-controls">
-          <button id="btn-start" class="retro-btn retro-btn--primary timer-btn">START</button>
-          <button id="btn-pause" class="retro-btn timer-btn hidden">PAUSE</button>
-          <button id="btn-reset" class="retro-btn timer-btn">RESET</button>
-          <button id="btn-skip"  class="retro-btn timer-btn">SKIP</button>
+          <button id="btn-start" class="retro-btn retro-btn--primary timer-btn">スタート</button>
+          <button id="btn-pause" class="retro-btn timer-btn hidden">一時停止</button>
+          <button id="btn-reset" class="retro-btn timer-btn">リセット</button>
+          <button id="btn-skip"  class="retro-btn timer-btn">スキップ</button>
         </div>
 
         <!-- 完了・保存メッセージ -->
@@ -125,7 +172,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">TIMER</span>
+          <span class="footer-label">タイマー</span>
         </button>
 
         <!-- レポート -->
@@ -138,7 +185,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">REPORT</span>
+          <span class="footer-label">記録</span>
         </button>
 
         <!-- モンスター -->
@@ -151,7 +198,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">MONSTER</span>
+          <span class="footer-label">モンスター</span>
         </button>
 
       </nav>
@@ -171,24 +218,26 @@
       <div class="user-bar">
         <span id="report-username" class="username-display"></span>
         <button class="retro-btn retro-btn--small logout-btn-ref">
-          CHANGE USER
+          ユーザー変更
         </button>
       </div>
 
-      <!-- ページタイトル -->
-      <div class="panel section-title">
-        <span class="section-title-text">-- BATTLE LOG: LAST 31 DAYS --</span>
+      <!-- タブ (週/月/年) -->
+      <div class="report-tabs">
+        <button class="tab-btn active" data-tab="week">週</button>
+        <button class="tab-btn" data-tab="month">月</button>
+        <button class="tab-btn" data-tab="year">年</button>
       </div>
 
       <!-- 合計時間サマリー -->
       <div class="panel stats-summary">
-        <span class="stats-label">TOTAL :</span>
+        <span class="stats-label">合計 :</span>
         <span id="report-total" class="stats-value">--H --M</span>
       </div>
 
       <!-- 棒グラフコンテナ (JS で描画) -->
       <div class="panel" id="chart-container">
-        <div id="chart-loading" class="chart-loading">LOADING...</div>
+        <div id="chart-loading" class="chart-loading">読み込み中...</div>
       </div>
 
     </div><!-- /page-content -->
@@ -207,7 +256,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">TIMER</span>
+          <span class="footer-label">タイマー</span>
         </button>
 
         <!-- レポート (アクティブ) -->
@@ -220,7 +269,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">REPORT</span>
+          <span class="footer-label">記録</span>
         </button>
 
         <!-- モンスター -->
@@ -233,7 +282,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">MONSTER</span>
+          <span class="footer-label">モンスター</span>
         </button>
 
       </nav>
@@ -254,18 +303,18 @@
       <div class="user-bar">
         <span id="monster-username" class="username-display"></span>
         <button class="retro-btn retro-btn--small logout-btn-ref">
-          CHANGE USER
+          ユーザー変更
         </button>
       </div>
 
       <!-- ページタイトル -->
       <div class="panel section-title">
-        <span class="section-title-text">-- ALL TIME RECORD --</span>
+        <span class="section-title-text">-- 全期間記録 --</span>
       </div>
 
       <!-- 全期間合計時間 大表示 -->
       <div class="panel alltime-total">
-        <div class="alltime-label">TOTAL STUDY TIME</div>
+        <div class="alltime-label">総学習時間</div>
         <div id="alltime-value" class="alltime-value">--H --M</div>
       </div>
 
@@ -276,7 +325,7 @@
            - #monster-status-zone  : 成長ステータス (LV/EXP) 表示エリア
            ================================================================ -->
       <div class="panel monster-area" id="monster-area">
-        <div class="monster-area-title">[ COMPANION MONSTER ]</div>
+        <div class="monster-area-title">[ 仲間モンスター ]</div>
 
         <!--
           モンスター表示ゾーン
@@ -287,8 +336,8 @@
           <!-- 現時点はプレースホルダー表示 -->
           <div class="monster-placeholder">
             <div class="monster-placeholder-box">
-              <div class="monster-placeholder-label">MONSTER DISPLAY AREA</div>
-              <div class="monster-placeholder-hint">-- COMING SOON --</div>
+              <div class="monster-placeholder-label">モンスター表示エリア</div>
+              <div class="monster-placeholder-hint">-- 準備中 --</div>
             </div>
           </div>
         </div>
@@ -299,14 +348,12 @@
           LV バーと EXP バーは JS (updateMonsterStatus) で動的に更新される
         -->
         <div class="monster-status-zone" id="monster-status-zone">
-          <div class="status-row">
-            <span class="status-key">LV</span>
-            <div class="status-bar-wrap">
-              <span class="status-bar-fill" id="monster-lv-bar" style="width: 0%"></span>
-            </div>
+          <div class="status-lv-row">
+            <span class="status-lv-label">Lv</span>
             <span class="status-val" id="monster-lv">--</span>
+            <span class="status-name" id="monster-name">???</span>
           </div>
-          <div class="status-row">
+          <div class="status-exp-row">
             <span class="status-key">EXP</span>
             <div class="status-bar-wrap">
               <span class="status-bar-fill" id="monster-exp-bar" style="width: 0%"></span>
@@ -337,7 +384,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">TIMER</span>
+          <span class="footer-label">タイマー</span>
         </button>
 
         <!-- レポート -->
@@ -350,7 +397,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">REPORT</span>
+          <span class="footer-label">記録</span>
         </button>
 
         <!-- モンスター (アクティブ) -->
@@ -363,7 +410,7 @@
               <rect x="3" y="3" width="18" height="18"/>
             </svg>
           </span>
-          <span class="footer-label">MONSTER</span>
+          <span class="footer-label">モンスター</span>
         </button>
 
       </nav>

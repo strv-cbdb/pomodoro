@@ -27,14 +27,17 @@ const TIMER_DURATION = {
   long_break:  15 * 60, //  900 秒
 };
 
+/** 1回の作業完了で記録する秒数 (30分) */
+const WORK_RECORD_SECONDS = 30 * 60;
+
 /** 長い休憩に入るまでの作業セッション数 */
 const SESSIONS_PER_CYCLE = 4;
 
 /** モード表示ラベル */
 const MODE_LABEL = {
-  work:        'WORK',
-  short_break: 'SHORT BREAK',
-  long_break:  'LONG BREAK',
+  work:        '作業中',
+  short_break: '小休憩',
+  long_break:  '長休憩',
 };
 
 /* ============================================================
@@ -43,8 +46,12 @@ const MODE_LABEL = {
 
 /** アプリ全体の共有状態 */
 const appState = {
-  username: null,   // ログイン中のユーザー名
+  username:    null,
+  monsterName: null,
 };
+
+/** 記録ページの選択タブ */
+let reportTab = 'week';
 
 /**
  * タイマー状態
@@ -84,6 +91,7 @@ function navigateTo(pageId) {
 
   // ページ別初期化
   switch (pageId) {
+    case 'naming':  initNamingPage();  break;
     case 'timer':   initTimerPage();   break;
     case 'report':  initReportPage();  break;
     case 'monster': initMonsterPage(); break;
@@ -119,7 +127,7 @@ async function handleLogin() {
   try {
     await saveUsername(username);
     appState.username = username;
-    navigateTo('timer');
+    await navigateAfterLogin();
   } catch (err) {
     console.error('handleLogin error:', err);
     showLoginError('エラーが発生しました。もう一度お試しください。');
@@ -152,8 +160,75 @@ async function handleLogout() {
   } catch (err) {
     console.error('handleLogout error:', err);
   }
-  appState.username = null;
+  appState.username    = null;
+  appState.monsterName = null;
   navigateTo('login');
+}
+
+/* ============================================================
+   ログイン後ナビゲーション
+   ============================================================ */
+
+async function navigateAfterLogin() {
+  const name = await getMonsterName(appState.username);
+  if (name) {
+    appState.monsterName = name;
+    navigateTo('timer');
+  } else {
+    navigateTo('naming');
+  }
+}
+
+/* ============================================================
+   命名ページ
+   ============================================================ */
+
+function initNamingPage() {
+  const input = document.getElementById('monster-name-input');
+  if (input) {
+    input.value = '';
+    setTimeout(() => input.focus(), 100);
+  }
+}
+
+async function handleNamingSubmit() {
+  const input = document.getElementById('monster-name-input');
+  const name  = (input.value || '').trim();
+
+  if (!name) {
+    showNamingError('名前を入力してください');
+    return;
+  }
+  if (!/^[\p{L}\p{N}\-_. ]+$/u.test(name)) {
+    showNamingError('使用できない文字が含まれています');
+    return;
+  }
+
+  const btn = document.getElementById('naming-btn');
+  btn.textContent = '保存中...';
+  btn.disabled    = true;
+
+  const ok = await saveMonsterName(appState.username, name);
+
+  if (ok) {
+    appState.monsterName = name;
+    navigateTo('timer');
+  } else {
+    btn.textContent = '決定';
+    btn.disabled    = false;
+    showNamingError('保存に失敗しました。もう一度お試しください。');
+  }
+}
+
+function showNamingError(msg) {
+  let el = document.getElementById('naming-error');
+  if (!el) {
+    el            = document.createElement('p');
+    el.id         = 'naming-error';
+    el.className  = 'login-error';
+    document.querySelector('#page-naming .login-panel').appendChild(el);
+  }
+  el.textContent = msg;
 }
 
 /* ============================================================
@@ -165,7 +240,7 @@ async function handleLogout() {
  */
 function initTimerPage() {
   const el = document.getElementById('timer-username');
-  if (el) el.textContent = `PLAYER: ${appState.username}`;
+  if (el) el.textContent = `プレイヤー: ${appState.username}`;
   renderTimerDisplay();
   renderPomodoroDots();
 }
@@ -204,7 +279,7 @@ function renderPomodoroDots() {
  */
 function renderStartButton() {
   const btn = document.getElementById('btn-start');
-  btn.textContent = timerState.hasStarted ? 'RESUME' : 'START';
+  btn.textContent = timerState.hasStarted ? '再開' : 'スタート';
 }
 
 /**
@@ -299,14 +374,14 @@ async function onTimerComplete() {
 
   if (timerState.mode === 'work') {
     // -- 作業完了 --
-    showTimerMessage('COMPLETE! SAVING...', 'info');
+    showTimerMessage('作業完了！保存中...', 'info');
 
-    const ok = await saveStudySession(appState.username, TIMER_DURATION.work);
+    const ok = await saveStudySession(appState.username, WORK_RECORD_SECONDS);
 
     if (ok) {
-      showTimerMessage('WORK COMPLETE! +25min SAVED.', 'success');
+      showTimerMessage('作業完了！+25分 保存しました。', 'success');
     } else {
-      showTimerMessage('WORK COMPLETE! (SAVE FAILED - CHECK CONFIG)', 'warning');
+      showTimerMessage('作業完了！(保存失敗 - 設定を確認してください)', 'warning');
     }
 
     // サイクル進捗を更新
@@ -332,7 +407,7 @@ async function onTimerComplete() {
 
   } else {
     // -- 休憩完了 --
-    showTimerMessage('BREAK OVER! READY TO WORK.', 'info');
+    showTimerMessage('休憩終了！作業を始めよう。', 'info');
     setTimeout(() => {
       hideTimerMessage();
       switchMode('work');
@@ -378,35 +453,56 @@ function hideTimerMessage() {
  */
 async function initReportPage() {
   const el = document.getElementById('report-username');
-  if (el) el.textContent = `PLAYER: ${appState.username}`;
+  if (el) el.textContent = `プレイヤー: ${appState.username}`;
 
+  document.querySelectorAll('#page-report .tab-btn').forEach(btn => {
+    btn.onclick = async () => {
+      reportTab = btn.dataset.tab;
+      document.querySelectorAll('#page-report .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      await loadReportData();
+    };
+  });
+
+  document.querySelectorAll('#page-report .tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === reportTab);
+  });
+
+  await loadReportData();
+}
+
+async function loadReportData() {
   const container = document.getElementById('chart-container');
   const loading   = document.getElementById('chart-loading');
 
-  loading.textContent = 'LOADING...';
+  loading.textContent = '読み込み中...';
   loading.classList.remove('hidden');
 
-  // 既存グラフをクリア
   const existing = container.querySelector('.bar-chart');
   if (existing) existing.remove();
 
   try {
-    const sessions = await fetchLastMonthSessions(appState.username);
+    let sessions, chartData;
+
+    if (reportTab === 'week') {
+      sessions  = await fetchSessionsSince(appState.username, 7);
+      chartData = aggregateByDay(sessions, 7);
+    } else if (reportTab === 'month') {
+      sessions  = await fetchSessionsSince(appState.username, 28);
+      chartData = aggregateByWeek(sessions, 4);
+    } else {
+      sessions  = await fetchSessionsSince(appState.username, 365);
+      chartData = aggregateByCalendarMonth(sessions, 12);
+    }
+
+    const totalSecs = sessions.reduce((sum, s) => sum + s.duration_seconds, 0);
     loading.classList.add('hidden');
-
-    // 日ごとに集計 (過去 31 日分)
-    const dailyData  = aggregateByDay(sessions, 31);
-    const totalSecs  = sessions.reduce((sum, s) => sum + s.duration_seconds, 0);
-
-    // 合計表示
     document.getElementById('report-total').textContent = formatDuration(totalSecs);
-
-    // 棒グラフ描画
-    renderBarChart(container, dailyData);
+    renderBarChart(container, chartData);
 
   } catch (err) {
-    loading.textContent = 'ERROR: データを取得できませんでした';
-    console.error('initReportPage error:', err);
+    loading.textContent = 'エラー: データを取得できませんでした';
+    console.error('loadReportData error:', err);
   }
 }
 
@@ -436,7 +532,49 @@ function aggregateByDay(sessions, days) {
     }
   });
 
-  return Object.entries(map).map(([date, seconds]) => ({ date, seconds }));
+  return Object.entries(map).map(([isoDate, seconds]) => {
+    const [, mm, dd] = isoDate.split('-');
+    return { date: `${mm}/${dd}`, seconds };
+  });
+}
+
+function aggregateByWeek(sessions, weeks) {
+  const result = [];
+  const now = new Date();
+
+  for (let i = weeks - 1; i >= 0; i--) {
+    const weekEnd = new Date(now);
+    weekEnd.setDate(weekEnd.getDate() - i * 7);
+    weekEnd.setHours(23, 59, 59, 999);
+    const weekStart = new Date(weekEnd);
+    weekStart.setDate(weekStart.getDate() - 6);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const mm = String(weekStart.getMonth() + 1).padStart(2, '0');
+    const dd = String(weekStart.getDate()).padStart(2, '0');
+    const seconds = sessions
+      .filter(s => { const d = new Date(s.ended_at); return d >= weekStart && d <= weekEnd; })
+      .reduce((sum, s) => sum + s.duration_seconds, 0);
+
+    result.push({ date: `${mm}/${dd}〜`, seconds });
+  }
+  return result;
+}
+
+function aggregateByCalendarMonth(sessions, months) {
+  const result = [];
+  const now = new Date();
+
+  for (let i = months - 1; i >= 0; i--) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd   = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+    const seconds = sessions
+      .filter(s => { const d = new Date(s.ended_at); return d >= monthStart && d <= monthEnd; })
+      .reduce((sum, s) => sum + s.duration_seconds, 0);
+
+    result.push({ date: `${monthStart.getMonth() + 1}月`, seconds });
+  }
+  return result;
 }
 
 /**
@@ -459,8 +597,8 @@ function toLocalDateKey(date) {
 function formatDuration(totalSeconds) {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
-  if (h === 0) return `${m}M`;
-  return `${h}H ${m}M`;
+  if (m === 0) return `${h}時間`;
+  return `${h}時間${m}分`;
 }
 
 /**
@@ -470,22 +608,19 @@ function formatDuration(totalSeconds) {
  * @param {Array<{date: string, seconds: number}>} data - 日付昇順データ
  */
 function renderBarChart(container, data) {
-  const maxSeconds = Math.max(...data.map((d) => d.seconds), 1);
+  const CHART_MAX = 10 * 3600; // 固定スケール: 10h
 
   const chart = document.createElement('div');
   chart.className = 'bar-chart';
 
-  // ---- Y 軸エリア ----
+  // ---- Y 軸エリア (0h〜10h, 1h刻み) ----
   const yAxis = document.createElement('div');
   yAxis.className = 'chart-y-axis';
 
-  // 最大時間を基準に Y 軸ラベルを生成 (4 段階)
-  const maxHours = Math.ceil(maxSeconds / 3600);
-  const steps    = 4;
-  for (let i = steps; i >= 0; i--) {
+  for (let i = 10; i >= 0; i--) {
     const lbl = document.createElement('div');
     lbl.className   = 'y-label';
-    lbl.textContent = `${Math.round((maxHours * i) / steps)}h`;
+    lbl.textContent = i > 0 ? `${i}h` : '';
     yAxis.appendChild(lbl);
   }
 
@@ -493,21 +628,21 @@ function renderBarChart(container, data) {
   const chartInner = document.createElement('div');
   chartInner.className = 'chart-inner';
 
-  // グリッドライン (Y 軸 4 本)
+  // グリッドライン (1h刻み 10本)
   const gridLayer = document.createElement('div');
   gridLayer.className = 'grid-layer';
-  for (let i = 1; i <= steps; i++) {
+  for (let i = 1; i <= 10; i++) {
     const line = document.createElement('div');
     line.className = 'grid-line';
-    line.style.bottom = `${(i / steps) * 100}%`;
+    line.style.bottom = `${(i / 10) * 100}%`;
     gridLayer.appendChild(line);
   }
 
   // バーエリア
   const barsArea = document.createElement('div');
-  barsArea.className = 'bars-area';
+  barsArea.className = data.length <= 14 ? 'bars-area bars-area--wide' : 'bars-area';
 
-  data.forEach(({ date, seconds }) => {
+  data.forEach(({ date, seconds }, index) => {
     const col = document.createElement('div');
     col.className = 'bar-col';
 
@@ -516,7 +651,7 @@ function renderBarChart(container, data) {
 
     const bar = document.createElement('div');
     bar.className = 'bar';
-    const pct = (seconds / maxSeconds) * 100;
+    const pct = Math.min((seconds / CHART_MAX) * 100, 100);
     bar.style.height = `${pct}%`;
     if (seconds === 0) bar.classList.add('bar--empty');
 
@@ -530,11 +665,9 @@ function renderBarChart(container, data) {
 
     barWrap.appendChild(bar);
 
-    // 日付ラベル (MM/DD)
     const dateLbl = document.createElement('div');
     dateLbl.className = 'bar-date';
-    const parts = date.split('-');
-    dateLbl.textContent = `${parts[1]}/${parts[2]}`;
+    dateLbl.textContent = (data.length <= 14 || index % 7 === 0) ? date : '';
 
     col.appendChild(barWrap);
     col.appendChild(dateLbl);
@@ -558,10 +691,13 @@ function renderBarChart(container, data) {
  */
 async function initMonsterPage() {
   const el = document.getElementById('monster-username');
-  if (el) el.textContent = `PLAYER: ${appState.username}`;
+  if (el) el.textContent = `プレイヤー: ${appState.username}`;
+
+  const nameEl = document.getElementById('monster-name');
+  if (nameEl) nameEl.textContent = appState.monsterName || '???';
 
   const valueEl = document.getElementById('alltime-value');
-  valueEl.textContent = 'LOADING...';
+  valueEl.textContent = '読み込み中...';
 
   try {
     const sessions   = await fetchAllTimeSessions(appState.username);
@@ -573,7 +709,7 @@ async function initMonsterPage() {
     updateMonsterStatus(totalSecs);
 
   } catch (err) {
-    valueEl.textContent = 'ERROR';
+    valueEl.textContent = 'エラー';
     console.error('initMonsterPage error:', err);
   }
 }
@@ -589,23 +725,18 @@ async function initMonsterPage() {
  * @param {number} totalSeconds - 全期間の合計秒数
  */
 function updateMonsterStatus(totalSeconds) {
-  const totalPomodoros = Math.floor(totalSeconds / TIMER_DURATION.work);
+  const totalPomodoros = Math.floor(totalSeconds / WORK_RECORD_SECONDS);
   const level          = Math.floor(totalPomodoros / 10) + 1;
   const expInLevel     = totalPomodoros % 10;
   const expPct         = expInLevel * 10; // 0-100%
 
-  const lvEl      = document.getElementById('monster-lv');
-  const expEl     = document.getElementById('monster-exp');
-  const lvBarEl   = document.getElementById('monster-lv-bar');
-  const expBarEl  = document.getElementById('monster-exp-bar');
+  const lvEl     = document.getElementById('monster-lv');
+  const expEl    = document.getElementById('monster-exp');
+  const expBarEl = document.getElementById('monster-exp-bar');
 
-  if (lvEl)    lvEl.textContent  = level;
-  if (expEl)   expEl.textContent = `${expInLevel}/10`;
-  if (lvBarEl) {
-    // レベルバーは level 1 = 10%, 10 = 100% (上限 100%)
-    lvBarEl.style.width = `${Math.min(level * 10, 100)}%`;
-  }
-  if (expBarEl) expBarEl.style.width = `${expPct}%`;
+  if (lvEl)     lvEl.textContent       = level;
+  if (expEl)    expEl.textContent      = `${expInLevel}/10`;
+  if (expBarEl) expBarEl.style.width   = `${expPct}%`;
 }
 
 /* ============================================================
@@ -633,6 +764,12 @@ function initEventListeners() {
   document.getElementById('login-btn').addEventListener('click', handleLogin);
   document.getElementById('username-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleLogin();
+  });
+
+  // ---- 命名ページ ----
+  document.getElementById('naming-btn').addEventListener('click', handleNamingSubmit);
+  document.getElementById('monster-name-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleNamingSubmit();
   });
 
   // ---- タイマー操作ボタン ----
@@ -668,7 +805,7 @@ async function boot() {
     const username = await getUsername();
     if (username) {
       appState.username = username;
-      navigateTo('timer');
+      await navigateAfterLogin();
     } else {
       navigateTo('login');
     }

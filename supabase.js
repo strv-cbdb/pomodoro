@@ -87,11 +87,81 @@ async function saveStudySession(username, durationSeconds = 1500) {
  * @param {string} username
  * @returns {Promise<Array<{ended_at: string, duration_seconds: number}>>}
  */
+async function fetchSessionsSince(username, days) {
+  if (!isConfigured()) return [];
+
+  try {
+    const since = new Date();
+    since.setDate(since.getDate() - (days - 1));
+    since.setHours(0, 0, 0, 0);
+
+    const params = new URLSearchParams({
+      username: `eq.${username}`,
+      ended_at: `gte.${since.toISOString()}`,
+      order:    'ended_at.asc',
+      select:   'ended_at,duration_seconds',
+    });
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/${TABLE}?${params}`,
+      { method: 'GET', headers: getHeaders() }
+    );
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('[supabase.js] fetchSessionsSince error:', res.status, text);
+      return [];
+    }
+    return await res.json();
+
+  } catch (err) {
+    console.error('[supabase.js] fetchSessionsSince network error:', err);
+    return [];
+  }
+}
+
+async function getMonsterName(username) {
+  if (!isConfigured()) return null;
+  try {
+    const params = new URLSearchParams({
+      username: `eq.${username}`,
+      select:   'monster_name',
+    });
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_profiles?${params}`,
+      { method: 'GET', headers: getHeaders() }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.length > 0 ? data[0].monster_name : null;
+  } catch (err) {
+    console.error('[supabase.js] getMonsterName error:', err);
+    return null;
+  }
+}
+
+async function saveMonsterName(username, monsterName) {
+  if (!isConfigured()) return false;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_profiles`, {
+      method: 'POST',
+      headers: {
+        ...getHeaders(),
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({ username, monster_name: monsterName }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('[supabase.js] saveMonsterName error:', err);
+    return false;
+  }
+}
+
 async function fetchLastMonthSessions(username) {
   if (!isConfigured()) return [];
 
   try {
-    // 31 日前の 00:00:00 (ローカル時刻 → UTC)
     const since = new Date();
     since.setDate(since.getDate() - 30);
     since.setHours(0, 0, 0, 0);
