@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(git -C \"//wsl.localhost/Ubuntu/home/user/projects/pomodoro\" ls-files supabase-config.js)",
-      "Bash(git -C \"//wsl.localhost/Ubuntu/home/user/projects/pomodoro\" rm --cached supabase-config.js)"
+      "Bash(git -C \"//wsl.localhost/Ubuntu/home/user/projects/pomodoro\" rm --cached supabase-config.js)",
+      "Bash(ls \"\\\\\\\\\\\\\\\\wsl.localhost\\\\\\\\Ubuntu\\\\\\\\home\\\\\\\\user\\\\\\\\projects\\\\\\\\pomodoro\" 2>/dev/null || echo \"WSL path check\")",
+      "Read(///wsl.localhost/Ubuntu/home/user/projects/**)"
     ]
   }
 }

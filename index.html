@@ -125,6 +125,7 @@
         <!-- 残り時間 -->
         <div class="panel timer-display-panel">
           <div id="timer-time" class="timer-digits timer-digits--work">25:00</div>
+          <img id="timer-monster-mini-img" class="timer-monster-mini" src="images/monster-lv00.png" alt="">
         </div>
 
         <!-- ポモドーロ進捗ドット -->
@@ -333,13 +334,7 @@
           id="monster-display-zone" を差し込み先として使う
         -->
         <div class="monster-display-zone" id="monster-display-zone">
-          <!-- 現時点はプレースホルダー表示 -->
-          <div class="monster-placeholder">
-            <div class="monster-placeholder-box">
-              <div class="monster-placeholder-label">モンスター表示エリア</div>
-              <div class="monster-placeholder-hint">-- 準備中 --</div>
-            </div>
-          </div>
+          <img id="monster-img" class="monster-img" src="images/monster-lv00.png" alt="モンスター">
         </div>
 
         <!--
@@ -363,7 +358,7 @@
         </div>
 
         <div class="monster-note">
-          * 25分の作業セッションを重ねるとモンスターが成長します (準備中)
+          * 30分の作業セッションを重ねるとモンスターが成長します
         </div>
 
       </div><!-- /monster-area -->
@@ -425,6 +420,7 @@
        3. supabase.js       ... Supabase REST API 操作 (saveStudySession 等)
        4. app.js            ... メインロジック (上記全てを使用)
        ================================================================ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="supabase-config.js"></script>
   <script src="db.js"></script>
   <script src="supabase.js"></script>

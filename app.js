@@ -33,6 +33,23 @@ const WORK_RECORD_SECONDS = 30 * 60;
 /** 長い休憩に入るまでの作業セッション数 */
 const SESSIONS_PER_CYCLE = 4;
 
+/**
+ * モンスター進化テーブル: レベル閾値 → 画像キー
+ *
+ * レベル計算式: level = floor(sqrt(累計セッション数 × 2.5))
+ *   Lv50 = 1000セッション = 500時間
+ */
+const MONSTER_STAGES = [
+  { minLevel:  0, image: 'lv00' }, // 卵
+  { minLevel:  3, image: 'lv03' }, // 卵（ひび小）
+  { minLevel:  6, image: 'lv06' }, // 卵（ひび大）
+  { minLevel: 10, image: 'lv10' }, // 赤ちゃん
+  { minLevel: 20, image: 'lv20' }, // 第1形態
+  { minLevel: 30, image: 'lv30' }, // 第2形態
+  { minLevel: 40, image: 'lv40' }, // 第3形態
+  { minLevel: 50, image: 'lv50' }, // 第4形態（最終）
+];
+
 /** モード表示ラベル */
 const MODE_LABEL = {
   work:        '作業中',
@@ -46,12 +63,16 @@ const MODE_LABEL = {
 
 /** アプリ全体の共有状態 */
 const appState = {
-  username:    null,
-  monsterName: null,
+  username:        null,
+  monsterName:     null,
+  monsterImageKey: 'lv00',
 };
 
 /** 記録ページの選択タブ */
 let reportTab = 'week';
+
+/** Chart.js インスタンス (再描画時に destroy するため保持) */
+let chartInstance = null;
 
 /**
  * タイマー状態
@@ -243,6 +264,9 @@ function initTimerPage() {
   if (el) el.textContent = `プレイヤー: ${appState.username}`;
   renderTimerDisplay();
   renderPomodoroDots();
+
+  const miniEl = document.getElementById('timer-monster-mini-img');
+  if (miniEl) miniEl.src = `images/monster-${appState.monsterImageKey}.png`;
 }
 
 /**
@@ -478,9 +502,6 @@ async function loadReportData() {
   loading.textContent = '読み込み中...';
   loading.classList.remove('hidden');
 
-  const existing = container.querySelector('.bar-chart');
-  if (existing) existing.remove();
-
   try {
     let sessions, chartData;
 
@@ -516,17 +537,16 @@ async function loadReportData() {
  */
 function aggregateByDay(sessions, days) {
   const map = {};
+  const JST_OFFSET = 9 * 60 * 60 * 1000;
 
-  // 過去 N 日分のキーを 0 で初期化 (ローカル日付)
   for (let i = days - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    map[toLocalDateKey(d)] = 0;
+    const jst = new Date(Date.now() + JST_OFFSET);
+    jst.setUTCDate(jst.getUTCDate() - i);
+    map[jst.toISOString().slice(0, 10)] = 0;
   }
 
-  // セッションを日付キーで集計
   sessions.forEach((s) => {
-    const key = toLocalDateKey(new Date(s.ended_at));
+    const key = s.ended_at.slice(0, 10);
     if (key in map) {
       map[key] += s.duration_seconds;
     }
@@ -539,21 +559,21 @@ function aggregateByDay(sessions, days) {
 }
 
 function aggregateByWeek(sessions, weeks) {
+  const JST_OFFSET = 9 * 60 * 60 * 1000;
   const result = [];
-  const now = new Date();
+  const jstNow = new Date(Date.now() + JST_OFFSET);
+  const todayMs = Date.UTC(jstNow.getUTCFullYear(), jstNow.getUTCMonth(), jstNow.getUTCDate());
 
   for (let i = weeks - 1; i >= 0; i--) {
-    const weekEnd = new Date(now);
-    weekEnd.setDate(weekEnd.getDate() - i * 7);
-    weekEnd.setHours(23, 59, 59, 999);
-    const weekStart = new Date(weekEnd);
-    weekStart.setDate(weekStart.getDate() - 6);
-    weekStart.setHours(0, 0, 0, 0);
+    const endMs   = todayMs - i * 7 * 86400000;
+    const startMs = endMs   - 6 * 86400000;
 
-    const mm = String(weekStart.getMonth() + 1).padStart(2, '0');
-    const dd = String(weekStart.getDate()).padStart(2, '0');
+    const endStr   = new Date(endMs).toISOString().slice(0, 10);
+    const startStr = new Date(startMs).toISOString().slice(0, 10);
+
+    const [, mm, dd] = startStr.split('-');
     const seconds = sessions
-      .filter(s => { const d = new Date(s.ended_at); return d >= weekStart && d <= weekEnd; })
+      .filter(s => { const d = s.ended_at.slice(0, 10); return d >= startStr && d <= endStr; })
       .reduce((sum, s) => sum + s.duration_seconds, 0);
 
     result.push({ date: `${mm}/${dd}〜`, seconds });
@@ -562,31 +582,30 @@ function aggregateByWeek(sessions, weeks) {
 }
 
 function aggregateByCalendarMonth(sessions, months) {
+  const JST_OFFSET = 9 * 60 * 60 * 1000;
   const result = [];
-  const now = new Date();
+  const jstNow = new Date(Date.now() + JST_OFFSET);
+  const nowYear  = jstNow.getUTCFullYear();
+  const nowMonth = jstNow.getUTCMonth();
 
   for (let i = months - 1; i >= 0; i--) {
-    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthEnd   = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+    const d  = new Date(Date.UTC(nowYear, nowMonth - i, 1));
+    const y  = d.getUTCFullYear();
+    const mo = d.getUTCMonth();
+    const monthStr = `${y}-${String(mo + 1).padStart(2, '0')}`;
+
     const seconds = sessions
-      .filter(s => { const d = new Date(s.ended_at); return d >= monthStart && d <= monthEnd; })
+      .filter(s => s.ended_at.slice(0, 7) === monthStr)
       .reduce((sum, s) => sum + s.duration_seconds, 0);
 
-    result.push({ date: `${monthStart.getMonth() + 1}月`, seconds });
+    result.push({ date: `${mo + 1}月`, seconds });
   }
   return result;
 }
 
-/**
- * Date オブジェクトをローカルタイムゾーンで "YYYY-MM-DD" 文字列に変換する
- * @param {Date} date
- * @returns {string}
- */
-function toLocalDateKey(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+/** DB の plain JST 文字列から "YYYY-MM-DD" を返す */
+function toJSTDateKey(isoStr) {
+  return isoStr.slice(0, 10);
 }
 
 /**
@@ -608,78 +627,77 @@ function formatDuration(totalSeconds) {
  * @param {Array<{date: string, seconds: number}>} data - 日付昇順データ
  */
 function renderBarChart(container, data) {
-  const CHART_MAX = 10 * 3600; // 固定スケール: 10h
-
-  const chart = document.createElement('div');
-  chart.className = 'bar-chart';
-
-  // ---- Y 軸エリア (0h〜10h, 1h刻み) ----
-  const yAxis = document.createElement('div');
-  yAxis.className = 'chart-y-axis';
-
-  for (let i = 10; i >= 0; i--) {
-    const lbl = document.createElement('div');
-    lbl.className   = 'y-label';
-    lbl.textContent = i > 0 ? `${i}h` : '';
-    yAxis.appendChild(lbl);
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
   }
 
-  // ---- グラフ本体 ----
-  const chartInner = document.createElement('div');
-  chartInner.className = 'chart-inner';
+  const oldWrap = container.querySelector('.chart-canvas-wrap');
+  if (oldWrap) oldWrap.remove();
 
-  // グリッドライン (1h刻み 10本)
-  const gridLayer = document.createElement('div');
-  gridLayer.className = 'grid-layer';
-  for (let i = 1; i <= 10; i++) {
-    const line = document.createElement('div');
-    line.className = 'grid-line';
-    line.style.bottom = `${(i / 10) * 100}%`;
-    gridLayer.appendChild(line);
-  }
+  const wrapper = document.createElement('div');
+  wrapper.className = 'chart-canvas-wrap';
+  const canvas = document.createElement('canvas');
+  wrapper.appendChild(canvas);
+  container.appendChild(wrapper);
 
-  // バーエリア
-  const barsArea = document.createElement('div');
-  barsArea.className = data.length <= 14 ? 'bars-area bars-area--wide' : 'bars-area';
+  const CHART_MAX = 10 * 3600;
+  const gridColor  = 'rgba(187, 102, 255, 0.3)';
+  const labelColor = '#f0f0ff';
 
-  data.forEach(({ date, seconds }, index) => {
-    const col = document.createElement('div');
-    col.className = 'bar-col';
-
-    const barWrap = document.createElement('div');
-    barWrap.className = 'bar-wrap';
-
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    const pct = Math.min((seconds / CHART_MAX) * 100, 100);
-    bar.style.height = `${pct}%`;
-    if (seconds === 0) bar.classList.add('bar--empty');
-
-    // 値ラベル (0 分は非表示)
-    if (seconds > 0) {
-      const valEl = document.createElement('div');
-      valEl.className   = 'bar-val';
-      valEl.textContent = formatDuration(seconds);
-      barWrap.appendChild(valEl);
-    }
-
-    barWrap.appendChild(bar);
-
-    const dateLbl = document.createElement('div');
-    dateLbl.className = 'bar-date';
-    dateLbl.textContent = (data.length <= 14 || index % 7 === 0) ? date : '';
-
-    col.appendChild(barWrap);
-    col.appendChild(dateLbl);
-    barsArea.appendChild(col);
+  chartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.date),
+      datasets: [{
+        data: data.map(d => d.seconds),
+        backgroundColor: '#00dd66',
+        borderWidth: 0,
+        borderRadius: 2,
+        barPercentage: 0.6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: 0,
+          max: CHART_MAX,
+          grid:   { color: gridColor },
+          border: { color: gridColor },
+          ticks: {
+            color: labelColor,
+            font: { size: 10 },
+            stepSize: 3600,
+            callback: (val) => val > 0 ? (val / 3600) + 'h' : '',
+          },
+        },
+        x: {
+          grid:   { display: false },
+          border: { color: gridColor },
+          ticks: {
+            color: labelColor,
+            font: { size: 9 },
+            maxRotation: 0,
+          },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0e0e2a',
+          borderColor: '#00dd66',
+          borderWidth: 1,
+          titleColor: '#f0f0ff',
+          bodyColor:  '#00dd66',
+          callbacks: {
+            label: (ctx) => ' ' + formatDuration(ctx.raw),
+          },
+        },
+      },
+    },
   });
-
-  chartInner.appendChild(gridLayer);
-  chartInner.appendChild(barsArea);
-
-  chart.appendChild(yAxis);
-  chart.appendChild(chartInner);
-  container.appendChild(chart);
 }
 
 /* ============================================================
@@ -715,28 +733,45 @@ async function initMonsterPage() {
 }
 
 /**
- * モンスターのレベル/EXP ステータスバーを更新する
- * (将来のモンスター機能拡張のための準備実装)
- *
- * 計算ルール (仮):
- *   - 25 分 = 1 EXP
- *   - 10 EXP = 1 レベルアップ
- *
+ * モンスターのレベル/EXP/画像を累計セッション数から更新する
  * @param {number} totalSeconds - 全期間の合計秒数
  */
 function updateMonsterStatus(totalSeconds) {
-  const totalPomodoros = Math.floor(totalSeconds / WORK_RECORD_SECONDS);
-  const level          = Math.floor(totalPomodoros / 10) + 1;
-  const expInLevel     = totalPomodoros % 10;
-  const expPct         = expInLevel * 10; // 0-100%
+  const totalSessions = Math.floor(totalSeconds / WORK_RECORD_SECONDS);
+  // level = floor(sqrt(sessions × 2.5))  → Lv50 = 1000sessions = 500h
+  const level = Math.floor(Math.sqrt(totalSessions * 2.5));
+
+  let stageIdx = 0;
+  for (let i = MONSTER_STAGES.length - 1; i >= 0; i--) {
+    if (level >= MONSTER_STAGES[i].minLevel) {
+      stageIdx = i;
+      break;
+    }
+  }
+
+  const current = MONSTER_STAGES[stageIdx];
+  appState.monsterImageKey = current.image;
 
   const lvEl     = document.getElementById('monster-lv');
   const expEl    = document.getElementById('monster-exp');
   const expBarEl = document.getElementById('monster-exp-bar');
+  const imgEl    = document.getElementById('monster-img');
+  const miniEl   = document.getElementById('timer-monster-mini-img');
 
-  if (lvEl)     lvEl.textContent       = level;
-  if (expEl)    expEl.textContent      = `${expInLevel}/10`;
-  if (expBarEl) expBarEl.style.width   = `${expPct}%`;
+  if (lvEl) lvEl.textContent = level;
+
+  const imgSrc = `images/monster-${current.image}.png`;
+  if (imgEl)  imgEl.src  = imgSrc;
+  if (miniEl) miniEl.src = imgSrc;
+
+  // sessions_for_level(L) = ceil(L² / 2.5) でEXPバーを計算
+  const sessionsForCurrent = Math.ceil(level * level / 2.5);
+  const sessionsForNext    = Math.ceil((level + 1) * (level + 1) / 2.5);
+  const expInLevel = totalSessions - sessionsForCurrent;
+  const expNeeded  = sessionsForNext - sessionsForCurrent;
+  const expPct     = Math.floor(expInLevel / expNeeded * 100);
+  if (expEl)    expEl.textContent    = `${expInLevel}/${expNeeded}`;
+  if (expBarEl) expBarEl.style.width = `${expPct}%`;
 }
 
 /* ============================================================

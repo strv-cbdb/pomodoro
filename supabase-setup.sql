@@ -10,7 +10,7 @@ create table study_sessions (
   id               bigserial    primary key,
   username         text         not null,
   duration_seconds integer      not null,
-  ended_at         timestamptz  not null default now()
+  ended_at         timestamp    not null default (now() at time zone 'Asia/Tokyo')
 );
 
 -- インデックス (ユーザー名 + 日時で絞り込むクエリが速くなる)
@@ -31,6 +31,13 @@ create policy "allow select"
   on study_sessions
   for select
   using (true);
+
+-- ============================================================
+-- JST 対応: ended_at を timestamp (タイムゾーンなし) に変更
+-- 既存テーブルがある場合は以下を実行 (新規作成なら上の CREATE TABLE を修正)
+-- ============================================================
+-- alter table study_sessions
+--   alter column ended_at type timestamp using ended_at at time zone 'Asia/Tokyo';
 
 -- ============================================================
 -- ユーザープロフィール (モンスター名など)

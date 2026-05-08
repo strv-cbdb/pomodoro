@@ -12,6 +12,23 @@
 /** テーブル名 */
 const TABLE = 'study_sessions';
 
+const JST_OFFSET = 9 * 60 * 60 * 1000;
+
+/** JST 現在時刻を plain ISO 文字列 (Z なし) で返す */
+function nowJST() {
+  return new Date(Date.now() + JST_OFFSET).toISOString().slice(0, -1);
+}
+
+/** JST で N 日前の深夜 0 時を plain ISO 文字列で返す */
+function jstMidnightBefore(days) {
+  const jstNow = new Date(Date.now() + JST_OFFSET);
+  return new Date(Date.UTC(
+    jstNow.getUTCFullYear(),
+    jstNow.getUTCMonth(),
+    jstNow.getUTCDate() - days
+  )).toISOString().slice(0, 10) + 'T00:00:00';
+}
+
 /**
  * Supabase REST API 用の共通リクエストヘッダーを返す
  * @returns {Object}
@@ -63,7 +80,7 @@ async function saveStudySession(username, durationSeconds = 1500) {
       body: JSON.stringify({
         username:         username,
         duration_seconds: durationSeconds,
-        ended_at:         new Date().toISOString(),
+        ended_at:         nowJST(),
       }),
     });
 
@@ -91,13 +108,11 @@ async function fetchSessionsSince(username, days) {
   if (!isConfigured()) return [];
 
   try {
-    const since = new Date();
-    since.setDate(since.getDate() - (days - 1));
-    since.setHours(0, 0, 0, 0);
+    const since = jstMidnightBefore(days - 1);
 
     const params = new URLSearchParams({
       username: `eq.${username}`,
-      ended_at: `gte.${since.toISOString()}`,
+      ended_at: `gte.${since}`,
       order:    'ended_at.asc',
       select:   'ended_at,duration_seconds',
     });
@@ -162,13 +177,11 @@ async function fetchLastMonthSessions(username) {
   if (!isConfigured()) return [];
 
   try {
-    const since = new Date();
-    since.setDate(since.getDate() - 30);
-    since.setHours(0, 0, 0, 0);
+    const since = jstMidnightBefore(30);
 
     const params = new URLSearchParams({
       username:  `eq.${username}`,
-      ended_at:  `gte.${since.toISOString()}`,
+      ended_at:  `gte.${since}`,
       order:     'ended_at.asc',
       select:    'ended_at,duration_seconds',
     });

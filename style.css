@@ -347,12 +347,24 @@ body::before {
 
 /* 残り時間 (大きなデジタル表示) */
 .timer-display-panel {
+  position: relative;
   width: 100%;
   max-width: 340px;
   text-align: center;
   padding: 20px 16px;
   background: #050514;
   border-color: var(--border-bright);
+}
+
+.timer-monster-mini {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  opacity: 0.85;
 }
 
 .timer-digits {
@@ -502,16 +514,6 @@ body::before {
   border-color: var(--border-bright);
 }
 
-/* バーが少ない場合は横幅を広げる */
-.bars-area--wide {
-  min-width: 100%;
-}
-
-.bars-area--wide .bar-col {
-  flex: 1;
-  width: auto;
-  min-width: 0;
-}
 
 /* 合計表示 */
 .stats-summary {
@@ -552,124 +554,9 @@ body::before {
   display: none;
 }
 
-/* 棒グラフ全体 */
-.bar-chart {
-  display: flex;
-  align-items: stretch;
-  gap: 4px;
-  width: 100%;
-}
-
-/* Y 軸 */
-.chart-y-axis {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-right: 6px;
-  padding-bottom: 22px; /* 日付ラベル分のオフセット */
-  min-width: 28px;
-  flex-shrink: 0;
-}
-
-.y-label {
-  font-size: 10px;
-  color: var(--text-bright);
-  letter-spacing: 0.05em;
-  line-height: 1;
-}
-
-/* グラフ内側 (グリッド + バー) */
-.chart-inner {
-  flex: 1;
-  position: relative;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-/* グリッドライン */
-.grid-layer {
-  position: absolute;
-  inset: 0;
-  bottom: 22px; /* 日付ラベル分 */
-  pointer-events: none;
-}
-
-.grid-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--purple);
-  opacity: 0.3;
-}
-
-/* バーエリア */
-.bars-area {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  min-height: 300px;
-  padding-bottom: 22px; /* 日付ラベル分 */
-  position: relative;
-  min-width: max-content; /* 横スクロール対応 */
-}
-
-/* 1本のバー列 */
-.bar-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 22px;
-  flex-shrink: 0;
-}
-
-/* バーのラッパー (高さ固定, バーが下から伸びる) */
-.bar-wrap {
-  height: 278px; /* bars-area min-height - padding */
-  width: 100%;
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-}
-
-/* バー本体 */
-.bar {
-  width: 100%;
-  background: var(--green);
-  min-height: 2px;
-  transition: height 0.4s ease;
-  box-shadow: 0 0 4px rgba(0, 221, 102, 0.3);
-}
-
-.bar--empty {
-  background: var(--border-dim);
-  opacity: 0.4;
-  box-shadow: none;
-}
-
-/* バーの上に表示する値ラベル */
-.bar-val {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 8px;
-  color: var(--green);
-  white-space: nowrap;
-  letter-spacing: 0;
-  margin-bottom: 2px;
-  pointer-events: none;
-}
-
-/* 日付ラベル */
-.bar-date {
-  font-size: 9px;
-  color: var(--text-bright);
-  margin-top: 4px;
-  white-space: nowrap;
-  text-align: center;
-  letter-spacing: 0;
+/* Chart.js canvas ラッパー */
+.chart-canvas-wrap {
+  height: 260px;
 }
 
 /* ============================================================
@@ -712,39 +599,22 @@ body::before {
   text-align: center;
 }
 
-/* モンスター表示ゾーン (将来: 画像・アニメ配置エリア) */
+/* モンスター表示ゾーン */
 .monster-display-zone {
-  /* id="monster-display-zone" に後から SVG/Canvas 等を挿入する */
   min-height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed var(--border-dim);
   margin-bottom: 16px;
   background: rgba(0, 0, 0, 0.2);
 }
 
-.monster-placeholder {
-  text-align: center;
-}
-
-.monster-placeholder-box {
-  border: 1px solid var(--border-dim);
-  padding: 20px 30px;
-  background: var(--bg-panel-alt);
-}
-
-.monster-placeholder-label {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--border);
-}
-
-.monster-placeholder-hint {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--text-dim);
-  margin-top: 6px;
+.monster-img {
+  width: 160px;
+  height: 160px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 0 12px rgba(100, 150, 255, 0.35));
 }
 
 /* ステータスゾーン (将来: 成長ステータス) */
