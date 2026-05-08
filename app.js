@@ -519,7 +519,7 @@ async function loadReportData() {
     const totalSecs = sessions.reduce((sum, s) => sum + s.duration_seconds, 0);
     loading.classList.add('hidden');
     document.getElementById('report-total').textContent = formatDuration(totalSecs);
-    renderBarChart(container, chartData);
+    renderBarChart(container, chartData, reportTab);
 
   } catch (err) {
     loading.textContent = 'エラー: データを取得できませんでした';
@@ -626,7 +626,7 @@ function formatDuration(totalSeconds) {
  * @param {HTMLElement} container    - グラフを挿入する親要素
  * @param {Array<{date: string, seconds: number}>} data - 日付昇順データ
  */
-function renderBarChart(container, data) {
+function renderBarChart(container, data, tab) {
   if (chartInstance) {
     chartInstance.destroy();
     chartInstance = null;
@@ -641,7 +641,8 @@ function renderBarChart(container, data) {
   wrapper.appendChild(canvas);
   container.appendChild(wrapper);
 
-  const CHART_MAX = 10 * 3600;
+  const CHART_MAX  = tab === 'year' ? 100 * 3600 : tab === 'month' ? 50 * 3600 : 10 * 3600;
+  const STEP_SIZE  = tab === 'year' ? 10 * 3600  : tab === 'month' ?  5 * 3600 :      3600;
   const gridColor  = 'rgba(187, 102, 255, 0.3)';
   const labelColor = '#f0f0ff';
 
@@ -669,7 +670,7 @@ function renderBarChart(container, data) {
           ticks: {
             color: labelColor,
             font: { size: 10 },
-            stepSize: 3600,
+            stepSize: STEP_SIZE,
             callback: (val) => val > 0 ? (val / 3600) + 'h' : '',
           },
         },
